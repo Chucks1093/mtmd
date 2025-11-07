@@ -19,7 +19,7 @@ import {
    getAdminStatsRepository,
    getAdminByIdRepository,
 } from './admin.utils';
-import AuthService from '../../service/auth.service';
+import AuthService from '../../services/auth.service';
 import { logger } from '../../utils/logger.utils';
 import { SendMail } from '../../utils/mail.util';
 
@@ -48,6 +48,8 @@ export const setupFirstAdmin = async (
       const googleCredentials = await AuthService.verifyGoogleToken(
          validatedData.googleId
       );
+
+      console.log('GOOGLE_CREDENTIALS', googleCredentials);
 
       await createFirstSystemAdminRepository({
          ...validatedData,

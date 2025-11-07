@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { envConfig } from '../config';
 import { ErrorRequestHandler } from 'express';
 import chalk from 'chalk';
+
 export class ApiError extends Error {
    statusCode: number;
    isOperational: boolean;
@@ -33,7 +34,7 @@ export const temporarilyDisabled = (
    next(error);
 };
 
-// Global error handling middleware - use ErrorRequestHandler type
+// Fixed global error handling middleware
 export const errorHandler: ErrorRequestHandler = (
    err: any,
    req: Request,
@@ -51,22 +52,6 @@ export const errorHandler: ErrorRequestHandler = (
       });
       return;
    }
-
-   const chalkColor = {
-      error: chalk.red,
-      success: chalk.green,
-      getReq: chalk.magenta,
-      postReq: chalk.cyan,
-   };
-   const { hostname, originalUrl, protocol, method } = req;
-   console.log(
-      `${
-         method === 'GET'
-            ? chalkColor.getReq(method)
-            : chalkColor.postReq(method)
-      }  ${protocol}://${hostname}:${envConfig.PORT}${originalUrl}`
-   );
-   next();
 
    // Handle JWT errors
    if (err.name === 'JsonWebTokenError') {
@@ -87,8 +72,34 @@ export const errorHandler: ErrorRequestHandler = (
       return;
    }
 
+   // Handle custom API errors
+   if (err instanceof ApiError) {
+      res.status(err.statusCode).json({
+         success: false,
+         message: err.message,
+      });
+      return;
+   }
+
+   // Log request details for debugging (moved to not interfere with response)
+   const chalkColor = {
+      error: chalk.red,
+      success: chalk.green,
+      getReq: chalk.magenta,
+      postReq: chalk.cyan,
+   };
+   const { hostname, originalUrl, protocol, method } = req;
+   console.log(
+      chalkColor.error('ERROR'),
+      `${
+         method === 'GET'
+            ? chalkColor.getReq(method)
+            : chalkColor.postReq(method)
+      } ${protocol}://${hostname}:${envConfig.PORT}${originalUrl}`
+   );
+
    // Default error response
-   res.status(500).json({
+   res.status(err.statusCode || 500).json({
       success: false,
       message:
          process.env.NODE_ENV === 'production'

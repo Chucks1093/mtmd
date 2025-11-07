@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import AuthService from '../service/auth.service';
+import AuthService from '../services/auth.service';
 import { logger } from '../utils/logger.utils';
 
 // Extend Express Request type to include admin
