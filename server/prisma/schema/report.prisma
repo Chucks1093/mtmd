@@ -1,0 +1,59 @@
+model Report {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Submitter Information
+  submitterName    String
+  submitterEmail   String?
+  submitterPhone   String?
+
+  // Location Information
+  state            String
+  lga              String  // Local Government Area
+  ward             String?
+  specificAddress  String  @db.Text
+  coordinates      String? // Optional GPS coordinates
+
+  // Toilet Report Details
+  images           String[] // Array of image URLs/paths
+  description      String?  @db.Text
+  toiletCondition  ToiletCondition
+  facilityType     FacilityType
+
+  // Administrative Fields
+  status           ReportStatus @default(PENDING)
+  adminNotes       String?      @db.Text
+  reviewedAt       DateTime?
+  reviewedBy       String?      // Admin ID who reviewed
+
+  @@index([status])
+  @@index([state])
+  @@index([lga])
+  @@index([createdAt])
+}
+
+enum ReportStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ToiletCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+  VERY_POOR
+}
+
+enum FacilityType {
+  PUBLIC
+  PRIVATE
+  SCHOOL
+  HOSPITAL
+  MARKET
+  OFFICE
+  RESIDENTIAL
+  OTHER
+}

@@ -1,0 +1,70 @@
+model Admin {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Basic Information
+  email         String      @unique
+  name          String
+  profilePicture String?
+  googleId      String?     @unique
+
+  // Role and Status
+  role          AdminRole   @default(ADMIN)
+  status        AdminStatus @default(PENDING)
+  
+  // Authentication
+  lastLoginAt   DateTime?
+  isActive      Boolean     @default(true)
+
+  // Invitation System
+  invitedBy     String?     // ID of admin who sent invite
+  inviteToken   String?     @unique
+  inviteExpiry  DateTime?
+  
+  // Audit Fields
+  createdBy     String?     // ID of admin who created this admin
+
+    // Relations - ADDED THIS
+  sessions      AdminSession[] // One admin can have multiple sessions
+  
+  @@index([email])
+  @@index([googleId])
+  @@index([inviteToken])
+  @@index([role])
+  @@index([status])
+}
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  adminId   String
+  token     String   @unique
+  expiresAt DateTime
+  
+  // Session metadata
+  userAgent String?
+  ipAddress String?
+  
+    
+  // Relations - ADDED THIS
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+enum AdminRole {
+  SYSTEM_ADMIN
+  ADMIN
+}
+
+enum AdminStatus {
+  PENDING     // Invited but not yet activated
+  ACTIVE      // Fully activated admin
+  SUSPENDED   // Temporarily disabled
+  DEACTIVATED // Permanently disabled
+}

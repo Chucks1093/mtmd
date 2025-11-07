@@ -1,0 +1,2321 @@
+{
+  "info": {
+    "title": "Tspec API",
+    "version": "0.0.1",
+    "description": ""
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/api/admin/setup/first-admin": {
+      "post": {
+        "operationId": "AdminApiSpec_post_/api/admin/setup/first-admin",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Setup first system admin",
+        "description": "Creates the first system admin account (only works if no system admin exists)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "description": "Email address (optional, will use Google email)",
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Name (optional, will use Google name)",
+                    "type": "string"
+                  },
+                  "googleId": {
+                    "description": "Google ID token from OAuth",
+                    "type": "string"
+                  },
+                  "setupKey": {
+                    "description": "Secret setup key from environment variables",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "googleId",
+                  "setupKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse",
+                  "description": "First system admin created successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "System admin already exists or invalid data"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Invalid setup key"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/login/google": {
+      "post": {
+        "operationId": "AdminApiSpec_post_/api/admin/login/google",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Google OAuth login",
+        "description": "Authenticate admin using Google OAuth token",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "googleToken": {
+                    "description": "Google ID token from OAuth",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "googleToken"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse",
+                  "description": "Login successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Invalid Google token"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "No admin account found for this Google account or account not active"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/profile": {
+      "get": {
+        "operationId": "AdminApiSpec_get_/api/admin/profile",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get current admin profile",
+        "description": "Get the authenticated admin's profile information",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse__id_string_email_string_name_string_role_string_profilePicture__string_undefined_lastLoginAt__string_undefined_createdAt_string___",
+                  "description": "Profile retrieved successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Admin profile not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/invite": {
+      "post": {
+        "operationId": "AdminApiSpec_post_/api/admin/invite",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Invite new admin (System Admin only)",
+        "description": "Send invitation to a new admin via email",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "description": "Email address of the admin to invite",
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Full name of the admin to invite",
+                    "type": "string"
+                  },
+                  "role": {
+                    "description": "Role to assign to the new admin",
+                    "enum": [
+                      "ADMIN",
+                      "SYSTEM_ADMIN"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "email",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse__id_string_email_string_name_string_role_string_status_string_inviteUrl_string___",
+                  "description": "Admin invitation sent successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Email already exists or invalid data"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "System admin privileges required"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin": {
+      "get": {
+        "operationId": "AdminApiSpec_get_/api/admin",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get all admins (System Admin only)",
+        "description": "Retrieve all admins with filtering and pagination",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "Page number",
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Number of items per page",
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Filter by role",
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "ADMIN",
+                "SYSTEM_ADMIN"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by status",
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "ACTIVE",
+                "DEACTIVATED",
+                "PENDING",
+                "SUSPENDED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Search by name or email",
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse__admins_Admin___total_number_page_number_limit_number_totalPages_number___",
+                  "description": "Admins retrieved successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "System admin privileges required"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/:id": {
+      "patch": {
+        "operationId": "AdminApiSpec_patch_/api/admin/:id",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Update admin (System Admin only)",
+        "description": "Update admin details and permissions",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "Admin ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "Updated name",
+                    "type": "string"
+                  },
+                  "role": {
+                    "description": "Updated role",
+                    "enum": [
+                      "ADMIN",
+                      "SYSTEM_ADMIN"
+                    ],
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "Updated status",
+                    "enum": [
+                      "ACTIVE",
+                      "DEACTIVATED",
+                      "PENDING",
+                      "SUSPENDED"
+                    ],
+                    "type": "string"
+                  },
+                  "isActive": {
+                    "description": "Whether admin is active",
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse__id_string_email_string_name_string_role_string_status_string___",
+                  "description": "Admin updated successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Cannot update your own role or invalid data"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "System admin privileges required"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Admin not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "AdminApiSpec_delete_/api/admin/:id",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Delete admin (System Admin only)",
+        "description": "Delete an admin account",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "Admin ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse_any_",
+                  "description": "Admin deleted successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Cannot delete your own account"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "System admin privileges required"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "description": "Admin not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/report": {
+      "get": {
+        "operationId": "ReportApiSpec_get_/api/v1/report",
+        "tags": [
+          "Reports",
+          "Reports"
+        ],
+        "summary": "Get all reports (Admin only)",
+        "description": "Retrieve all reports with filtering and pagination for admin dashboard",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "Page number",
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Number of items per page",
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Filter by status",
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "APPROVED",
+                "PENDING",
+                "REJECTED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by state",
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by LGA",
+            "name": "lga",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by facility type",
+            "name": "facilityType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "HOSPITAL",
+                "MARKET",
+                "OFFICE",
+                "OTHER",
+                "PRIVATE",
+                "PUBLIC",
+                "RESIDENTIAL",
+                "SCHOOL"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by toilet condition",
+            "name": "toiletCondition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "EXCELLENT",
+                "FAIR",
+                "GOOD",
+                "POOR",
+                "VERY_POOR"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse_PaginatedReportsResponse_",
+                  "description": "Reports retrieved successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_1",
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_1",
+                  "description": "Admin access required"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "ReportApiSpec_post_/api/v1/report",
+        "tags": [
+          "Reports",
+          "Reports"
+        ],
+        "summary": "Submit a new toilet report",
+        "description": "Allows citizens to submit toilet condition reports with photos and location data",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "submitterName": {
+                    "description": "Name of the person submitting the report",
+                    "type": "string"
+                  },
+                  "submitterEmail": {
+                    "description": "Email of the submitter (optional)",
+                    "type": "string"
+                  },
+                  "submitterPhone": {
+                    "description": "Phone number of the submitter (optional)",
+                    "type": "string"
+                  },
+                  "state": {
+                    "description": "Nigerian state where toilet is located",
+                    "type": "string"
+                  },
+                  "lga": {
+                    "description": "Local Government Area",
+                    "type": "string"
+                  },
+                  "ward": {
+                    "description": "Ward (optional)",
+                    "type": "string"
+                  },
+                  "specificAddress": {
+                    "description": "Specific address of the toilet facility",
+                    "type": "string"
+                  },
+                  "coordinates": {
+                    "description": "GPS coordinates (optional)",
+                    "type": "string"
+                  },
+                  "images": {
+                    "description": "Array of image URLs",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "description": {
+                    "description": "Additional description (optional)",
+                    "type": "string"
+                  },
+                  "toiletCondition": {
+                    "description": "Condition of the toilet",
+                    "enum": [
+                      "EXCELLENT",
+                      "FAIR",
+                      "GOOD",
+                      "POOR",
+                      "VERY_POOR"
+                    ],
+                    "type": "string"
+                  },
+                  "facilityType": {
+                    "description": "Type of facility",
+                    "enum": [
+                      "HOSPITAL",
+                      "MARKET",
+                      "OFFICE",
+                      "OTHER",
+                      "PRIVATE",
+                      "PUBLIC",
+                      "RESIDENTIAL",
+                      "SCHOOL"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "facilityType",
+                  "images",
+                  "lga",
+                  "specificAddress",
+                  "state",
+                  "submitterName",
+                  "toiletCondition"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse_Report_",
+                  "description": "Report submitted successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_1",
+                  "description": "Invalid input data"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/report/:id": {
+      "get": {
+        "operationId": "ReportApiSpec_get_/api/v1/report/:id",
+        "tags": [
+          "Reports",
+          "Reports"
+        ],
+        "summary": "Get a specific report (Admin only)",
+        "description": "Retrieve a specific report by ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "Report ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse_Report_",
+                  "description": "Report retrieved successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_1",
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_1",
+                  "description": "Report not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "ReportApiSpec_delete_/api/v1/report/:id",
+        "tags": [
+          "Reports",
+          "Reports"
+        ],
+        "summary": "Delete a report (Admin only)",
+        "description": "Delete a specific report",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "Report ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse_any__1",
+                  "description": "Report deleted successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_1",
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_1",
+                  "description": "Report not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/report/:id/status": {
+      "patch": {
+        "operationId": "ReportApiSpec_patch_/api/v1/report/:id/status",
+        "tags": [
+          "Reports",
+          "Reports"
+        ],
+        "summary": "Update report status (Admin only)",
+        "description": "Approve, reject, or change status of a report",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "Report ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "description": "Report review status",
+                    "enum": [
+                      "APPROVED",
+                      "PENDING",
+                      "REJECTED"
+                    ],
+                    "type": "string"
+                  },
+                  "adminNotes": {
+                    "description": "Admin notes (optional)",
+                    "type": "string"
+                  },
+                  "reviewedBy": {
+                    "description": "ID of admin reviewing",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse_Report_",
+                  "description": "Report status updated successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_1",
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_1",
+                  "description": "Report not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/report/location": {
+      "get": {
+        "operationId": "ReportApiSpec_get_/api/v1/report/location",
+        "tags": [
+          "Reports",
+          "Reports"
+        ],
+        "summary": "Get reports by location (Public)",
+        "description": "Get approved reports for map visualization",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "State name (required)",
+            "name": "state",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "LGA name (optional)",
+            "name": "lga",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse_LocationReport___",
+                  "description": "Location reports retrieved successfully"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/report/stats": {
+      "get": {
+        "operationId": "ReportApiSpec_get_/api/v1/report/stats",
+        "tags": [
+          "Reports",
+          "Reports"
+        ],
+        "summary": "Get campaign statistics (Public)",
+        "description": "Get public statistics for the campaign dashboard",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse_ReportStats_",
+                  "description": "Statistics retrieved successfully"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/report/recent": {
+      "get": {
+        "operationId": "ReportApiSpec_get_/api/v1/report/recent",
+        "tags": [
+          "Reports",
+          "Reports"
+        ],
+        "summary": "Get recent approved reports (Public)",
+        "description": "Get recent approved reports for public display",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "Number of recent reports to return",
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse_RecentReport___",
+                  "description": "Recent reports retrieved successfully"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SetupFirstAdminRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "description": "Email address (optional, will use Google email)",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name (optional, will use Google name)",
+            "type": "string"
+          },
+          "googleId": {
+            "description": "Google ID token from OAuth",
+            "type": "string"
+          },
+          "setupKey": {
+            "description": "Secret setup key from environment variables",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "googleId",
+          "setupKey"
+        ]
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "admin": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "type": "string"
+                  },
+                  "profilePicture": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "email",
+                  "id",
+                  "name",
+                  "role"
+                ]
+              },
+              "token": {
+                "description": "Session token for authentication",
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "admin",
+              "token"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "message",
+          "success"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {}
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "GoogleLoginRequest": {
+        "type": "object",
+        "properties": {
+          "googleToken": {
+            "description": "Google ID token from OAuth",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "googleToken"
+        ]
+      },
+      "SuccessResponse__id_string_email_string_name_string_role_string_profilePicture__string_undefined_lastLoginAt__string_undefined_createdAt_string___": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "profilePicture": {
+                "type": "string"
+              },
+              "lastLoginAt": {
+                "type": "string"
+              },
+              "createdAt": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "createdAt",
+              "email",
+              "id",
+              "name",
+              "role"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "InviteAdminRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "description": "Email address of the admin to invite",
+            "type": "string"
+          },
+          "name": {
+            "description": "Full name of the admin to invite",
+            "type": "string"
+          },
+          "role": {
+            "description": "Role to assign to the new admin",
+            "enum": [
+              "ADMIN",
+              "SYSTEM_ADMIN"
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "name"
+        ]
+      },
+      "SuccessResponse__id_string_email_string_name_string_role_string_status_string_inviteUrl_string___": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "inviteUrl": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "email",
+              "id",
+              "inviteUrl",
+              "name",
+              "role",
+              "status"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "SuccessResponse__admins_Admin___total_number_page_number_limit_number_totalPages_number___": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "admins": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Admin"
+                }
+              },
+              "total": {
+                "type": "number"
+              },
+              "page": {
+                "type": "number"
+              },
+              "limit": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "admins",
+              "limit",
+              "page",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "Admin": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique identifier for the admin",
+            "type": "string"
+          },
+          "email": {
+            "description": "Admin email address",
+            "type": "string"
+          },
+          "name": {
+            "description": "Admin full name",
+            "type": "string"
+          },
+          "profilePicture": {
+            "description": "Profile picture URL from Google",
+            "type": "string"
+          },
+          "googleId": {
+            "description": "Google account ID",
+            "type": "string"
+          },
+          "role": {
+            "description": "Admin role level",
+            "enum": [
+              "ADMIN",
+              "SYSTEM_ADMIN"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "description": "Admin account status",
+            "enum": [
+              "ACTIVE",
+              "DEACTIVATED",
+              "PENDING",
+              "SUSPENDED"
+            ],
+            "type": "string"
+          },
+          "lastLoginAt": {
+            "description": "Last login timestamp",
+            "type": "string"
+          },
+          "isActive": {
+            "description": "Whether admin account is active",
+            "type": "boolean"
+          },
+          "invitedBy": {
+            "description": "ID of admin who sent the invitation",
+            "type": "string"
+          },
+          "createdBy": {
+            "description": "ID of admin who created this admin",
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "Account creation timestamp",
+            "type": "string"
+          },
+          "updatedAt": {
+            "description": "Account update timestamp",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "createdAt",
+          "email",
+          "id",
+          "isActive",
+          "name",
+          "role",
+          "status",
+          "updatedAt"
+        ]
+      },
+      "SuccessResponse__id_string_email_string_name_string_role_string_status_string___": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "email",
+              "id",
+              "name",
+              "role",
+              "status"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "SuccessResponse_any_": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {}
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "SuccessResponse_PaginatedReportsResponse_": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedReportsResponse"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "PaginatedReportsResponse": {
+        "type": "object",
+        "properties": {
+          "reports": {
+            "description": "Array of report objects",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Report"
+            }
+          },
+          "total": {
+            "description": "Total number of reports",
+            "type": "number"
+          },
+          "page": {
+            "description": "Current page number",
+            "type": "number"
+          },
+          "limit": {
+            "description": "Number of items per page",
+            "type": "number"
+          },
+          "totalPages": {
+            "description": "Total number of pages",
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "limit",
+          "page",
+          "reports",
+          "total",
+          "totalPages"
+        ]
+      },
+      "Report": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique identifier for the report",
+            "type": "string"
+          },
+          "submitterName": {
+            "description": "Name of the person submitting the report",
+            "type": "string"
+          },
+          "submitterEmail": {
+            "description": "Email of the submitter (optional)",
+            "type": "string"
+          },
+          "submitterPhone": {
+            "description": "Phone number of the submitter (optional)",
+            "type": "string"
+          },
+          "state": {
+            "description": "Nigerian state where toilet is located",
+            "type": "string"
+          },
+          "lga": {
+            "description": "Local Government Area",
+            "type": "string"
+          },
+          "ward": {
+            "description": "Ward (optional)",
+            "type": "string"
+          },
+          "specificAddress": {
+            "description": "Specific address of the toilet facility",
+            "type": "string"
+          },
+          "coordinates": {
+            "description": "GPS coordinates (optional)",
+            "type": "string"
+          },
+          "images": {
+            "description": "Array of image URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "description": "Additional description (optional)",
+            "type": "string"
+          },
+          "toiletCondition": {
+            "description": "Condition of the toilet",
+            "enum": [
+              "EXCELLENT",
+              "FAIR",
+              "GOOD",
+              "POOR",
+              "VERY_POOR"
+            ],
+            "type": "string"
+          },
+          "facilityType": {
+            "description": "Type of facility",
+            "enum": [
+              "HOSPITAL",
+              "MARKET",
+              "OFFICE",
+              "OTHER",
+              "PRIVATE",
+              "PUBLIC",
+              "RESIDENTIAL",
+              "SCHOOL"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "description": "Admin review status",
+            "enum": [
+              "APPROVED",
+              "PENDING",
+              "REJECTED"
+            ],
+            "type": "string"
+          },
+          "adminNotes": {
+            "description": "Admin notes (admin only)",
+            "type": "string"
+          },
+          "reviewedAt": {
+            "description": "When report was reviewed",
+            "type": "string"
+          },
+          "reviewedBy": {
+            "description": "ID of admin who reviewed",
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "Report creation timestamp",
+            "type": "string"
+          },
+          "updatedAt": {
+            "description": "Report update timestamp",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "createdAt",
+          "facilityType",
+          "id",
+          "images",
+          "lga",
+          "specificAddress",
+          "state",
+          "status",
+          "submitterName",
+          "toiletCondition",
+          "updatedAt"
+        ]
+      },
+      "ErrorResponse_1": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {}
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "CreateReportRequest": {
+        "type": "object",
+        "properties": {
+          "submitterName": {
+            "description": "Name of the person submitting the report",
+            "type": "string"
+          },
+          "submitterEmail": {
+            "description": "Email of the submitter (optional)",
+            "type": "string"
+          },
+          "submitterPhone": {
+            "description": "Phone number of the submitter (optional)",
+            "type": "string"
+          },
+          "state": {
+            "description": "Nigerian state where toilet is located",
+            "type": "string"
+          },
+          "lga": {
+            "description": "Local Government Area",
+            "type": "string"
+          },
+          "ward": {
+            "description": "Ward (optional)",
+            "type": "string"
+          },
+          "specificAddress": {
+            "description": "Specific address of the toilet facility",
+            "type": "string"
+          },
+          "coordinates": {
+            "description": "GPS coordinates (optional)",
+            "type": "string"
+          },
+          "images": {
+            "description": "Array of image URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "description": "Additional description (optional)",
+            "type": "string"
+          },
+          "toiletCondition": {
+            "description": "Condition of the toilet",
+            "enum": [
+              "EXCELLENT",
+              "FAIR",
+              "GOOD",
+              "POOR",
+              "VERY_POOR"
+            ],
+            "type": "string"
+          },
+          "facilityType": {
+            "description": "Type of facility",
+            "enum": [
+              "HOSPITAL",
+              "MARKET",
+              "OFFICE",
+              "OTHER",
+              "PRIVATE",
+              "PUBLIC",
+              "RESIDENTIAL",
+              "SCHOOL"
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "facilityType",
+          "images",
+          "lga",
+          "specificAddress",
+          "state",
+          "submitterName",
+          "toiletCondition"
+        ]
+      },
+      "SuccessResponse_Report_": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Report"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "SuccessResponse_any__1": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {}
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "UpdateReportStatusRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "description": "Report review status",
+            "enum": [
+              "APPROVED",
+              "PENDING",
+              "REJECTED"
+            ],
+            "type": "string"
+          },
+          "adminNotes": {
+            "description": "Admin notes (optional)",
+            "type": "string"
+          },
+          "reviewedBy": {
+            "description": "ID of admin reviewing",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ]
+      },
+      "SuccessResponse_LocationReport___": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LocationReport"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "LocationReport": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Report ID",
+            "type": "string"
+          },
+          "state": {
+            "description": "State name",
+            "type": "string"
+          },
+          "lga": {
+            "description": "LGA name",
+            "type": "string"
+          },
+          "ward": {
+            "description": "Ward name",
+            "type": "string"
+          },
+          "specificAddress": {
+            "description": "Specific address",
+            "type": "string"
+          },
+          "coordinates": {
+            "description": "GPS coordinates",
+            "type": "string"
+          },
+          "toiletCondition": {
+            "description": "Toilet condition",
+            "enum": [
+              "EXCELLENT",
+              "FAIR",
+              "GOOD",
+              "POOR",
+              "VERY_POOR"
+            ],
+            "type": "string"
+          },
+          "facilityType": {
+            "description": "Facility type",
+            "enum": [
+              "HOSPITAL",
+              "MARKET",
+              "OFFICE",
+              "OTHER",
+              "PRIVATE",
+              "PUBLIC",
+              "RESIDENTIAL",
+              "SCHOOL"
+            ],
+            "type": "string"
+          },
+          "images": {
+            "description": "Image URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "description": "Creation timestamp",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "createdAt",
+          "facilityType",
+          "id",
+          "images",
+          "lga",
+          "specificAddress",
+          "state",
+          "toiletCondition"
+        ]
+      },
+      "SuccessResponse_ReportStats_": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReportStats"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "ReportStats": {
+        "type": "object",
+        "properties": {
+          "totalReports": {
+            "description": "Total number of reports",
+            "type": "number"
+          },
+          "approvedReports": {
+            "description": "Number of approved reports",
+            "type": "number"
+          },
+          "pendingReports": {
+            "description": "Number of pending reports",
+            "type": "number"
+          },
+          "rejectedReports": {
+            "description": "Number of rejected reports",
+            "type": "number"
+          },
+          "reportsByState": {
+            "description": "Reports grouped by state",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "type": "string"
+                },
+                "_count": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "id"
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "_count",
+                "state"
+              ]
+            }
+          },
+          "reportsByCondition": {
+            "description": "Reports grouped by condition",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "toiletCondition": {
+                  "type": "string"
+                },
+                "_count": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "id"
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "_count",
+                "toiletCondition"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "approvedReports",
+          "pendingReports",
+          "rejectedReports",
+          "reportsByCondition",
+          "reportsByState",
+          "totalReports"
+        ]
+      },
+      "SuccessResponse_RecentReport___": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecentReport"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "success"
+        ]
+      },
+      "RecentReport": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Report ID",
+            "type": "string"
+          },
+          "submitterName": {
+            "description": "Submitter name",
+            "type": "string"
+          },
+          "state": {
+            "description": "State name",
+            "type": "string"
+          },
+          "lga": {
+            "description": "LGA name",
+            "type": "string"
+          },
+          "toiletCondition": {
+            "description": "Toilet condition",
+            "enum": [
+              "EXCELLENT",
+              "FAIR",
+              "GOOD",
+              "POOR",
+              "VERY_POOR"
+            ],
+            "type": "string"
+          },
+          "facilityType": {
+            "description": "Facility type",
+            "enum": [
+              "HOSPITAL",
+              "MARKET",
+              "OFFICE",
+              "OTHER",
+              "PRIVATE",
+              "PUBLIC",
+              "RESIDENTIAL",
+              "SCHOOL"
+            ],
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "Creation timestamp",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "createdAt",
+          "facilityType",
+          "id",
+          "lga",
+          "state",
+          "submitterName",
+          "toiletCondition"
+        ]
+      }
+    }
+  }
+}
