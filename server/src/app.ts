@@ -1,7 +1,7 @@
 // src/app.ts
 import express, { Express, Request, Response, RequestHandler } from 'express';
 import { initTspecServer, TspecDocsMiddleware } from 'tspec';
-import { errorHandler } from './middlewares/error.middleware';
+import { errorHandler, notFoundHandler } from './middlewares/error.middleware'; // Add notFoundHandler import
 import router from './modules/index';
 import { corsMiddleware } from './middlewares/cors.middleware';
 import helmet from 'helmet';
@@ -43,6 +43,11 @@ app.get('/', (req: Request, res: Response) => {
 
 // Routes
 app.use('/api/v1', router);
+
+// 404 handler - MUST come after all routes
+app.use(notFoundHandler);
+
+// Error handler - MUST be last
 app.use(errorHandler);
 
 export default app;

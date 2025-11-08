@@ -1,7 +1,9 @@
+// src/middlewares/error.middleware.ts
 import { NextFunction, Request, Response } from 'express';
 import { envConfig } from '../config';
 import { ErrorRequestHandler } from 'express';
 import chalk from 'chalk';
+import { z } from 'zod';
 
 export class ApiError extends Error {
    statusCode: number;
@@ -11,7 +13,6 @@ export class ApiError extends Error {
       super(message);
       this.statusCode = statusCode;
       this.isOperational = isOperational;
-      console.log('MESSAGE:', message);
       Error.captureStackTrace(this, this.constructor);
    }
 }
@@ -21,7 +22,10 @@ export const notFoundHandler = (
    res: Response,
    next: NextFunction
 ) => {
-   const error = new ApiError(404, `Route not found: ${req.originalUrl}`);
+   const error = new ApiError(
+      404,
+      `Route not found: ${req.method} ${req.originalUrl}`
+   );
    next(error);
 };
 
@@ -30,25 +34,28 @@ export const temporarilyDisabled = (
    res: Response,
    next: NextFunction
 ) => {
-   const error = new ApiError(540, `This has temporarily been disabled!`);
+   const error = new ApiError(503, `This endpoint is temporarily disabled`);
    next(error);
 };
 
-// Fixed global error handling middleware
+// Improved global error handling middleware
 export const errorHandler: ErrorRequestHandler = (
    err: any,
    req: Request,
    res: Response,
    next: NextFunction
 ): void => {
-   console.error('Global error handler:', err);
+   // Log error details
+   console.error('🚨 Error caught by global handler:');
+   console.error('URL:', req.method, req.originalUrl);
+   console.error('Error:', err);
 
    // Handle Zod validation errors
-   if (err.name === 'ZodError') {
+   if (err instanceof z.ZodError || err.name === 'ZodError') {
       res.status(400).json({
          success: false,
          message: 'Validation failed',
-         errors: err.errors,
+         errors: err.errors || err.issues,
       });
       return;
    }
@@ -57,16 +64,39 @@ export const errorHandler: ErrorRequestHandler = (
    if (err.name === 'JsonWebTokenError') {
       res.status(401).json({
          success: false,
-         message: 'Invalid token',
+         message: 'Invalid or expired token',
+      });
+      return;
+   }
+
+   if (err.name === 'TokenExpiredError') {
+      res.status(401).json({
+         success: false,
+         message: 'Token has expired',
       });
       return;
    }
 
    // Handle Prisma errors
    if (err.code && err.code.startsWith('P')) {
-      res.status(500).json({
+      let message = 'Database operation failed';
+
+      // Common Prisma error codes
+      switch (err.code) {
+         case 'P2002':
+            message = 'Record already exists (unique constraint violation)';
+            break;
+         case 'P2025':
+            message = 'Record not found';
+            break;
+         case 'P2003':
+            message = 'Foreign key constraint violation';
+            break;
+      }
+
+      res.status(400).json({
          success: false,
-         message: 'Database operation failed',
+         message,
          ...(process.env.NODE_ENV === 'development' && { error: err.message }),
       });
       return;
@@ -81,31 +111,43 @@ export const errorHandler: ErrorRequestHandler = (
       return;
    }
 
-   // Log request details for debugging (moved to not interfere with response)
+   // Handle syntax errors (malformed JSON)
+   if (err instanceof SyntaxError && 'body' in err) {
+      res.status(400).json({
+         success: false,
+         message: 'Invalid JSON format',
+      });
+      return;
+   }
+
+   // Log request details for debugging
    const chalkColor = {
       error: chalk.red,
       success: chalk.green,
       getReq: chalk.magenta,
       postReq: chalk.cyan,
    };
+
    const { hostname, originalUrl, protocol, method } = req;
    console.log(
-      chalkColor.error('ERROR'),
-      `${
-         method === 'GET'
-            ? chalkColor.getReq(method)
-            : chalkColor.postReq(method)
-      } ${protocol}://${hostname}:${envConfig.PORT}${originalUrl}`
+      chalkColor.error('❌ ERROR'),
+      `${method === 'GET' ? chalkColor.getReq(method) : chalkColor.postReq(method)} ${protocol}://${hostname}:${envConfig.PORT || 3000}${originalUrl}`
    );
 
    // Default error response
-   res.status(err.statusCode || 500).json({
+   const statusCode = err.statusCode || err.status || 500;
+   const message =
+      process.env.NODE_ENV === 'production'
+         ? 'Internal server error'
+         : err.message || 'Something went wrong!';
+
+   res.status(statusCode).json({
       success: false,
-      message:
-         process.env.NODE_ENV === 'production'
-            ? 'Internal server error'
-            : err.message || 'Something went wrong!',
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+      message,
+      ...(process.env.NODE_ENV === 'development' && {
+         stack: err.stack,
+         error: err,
+      }),
    });
 };
 
@@ -118,10 +160,18 @@ export const badRequestError = (message: string) => {
    return new ApiError(400, message);
 };
 
-export const unauthorizedError = (message = 'Unauthorized') => {
+export const unauthorizedError = (message = 'Unauthorized access') => {
    return new ApiError(401, message);
 };
 
-export const forbiddenError = (message = 'Forbidden') => {
+export const forbiddenError = (message = 'Access forbidden') => {
    return new ApiError(403, message);
+};
+
+export const conflictError = (message: string) => {
+   return new ApiError(409, message);
+};
+
+export const validationError = (message: string) => {
+   return new ApiError(422, message);
 };

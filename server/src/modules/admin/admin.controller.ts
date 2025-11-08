@@ -23,9 +23,226 @@ import AuthService from '../../services/auth.service';
 import { logger } from '../../utils/logger.utils';
 import { SendMail } from '../../utils/mail.util';
 
+// Google OAuth configuration
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const GOOGLE_REDIRECT_URI = `${BACKEND_URL}/api/v1/admin/auth/google/callback`;
+
 /**
- * Setup first system admin (only works if no system admin exists)
+ * Initiate Google OAuth login
  */
+export const initiateGoogleAuth = async (
+   req: Request,
+   res: Response,
+   next: NextFunction
+): Promise<void> => {
+   try {
+      if (!GOOGLE_CLIENT_ID) {
+         logger.error('Google Client ID not configured');
+         res.redirect(
+            `${FRONTEND_URL}/login?success=false&message=OAuth not configured`
+         );
+         return;
+      }
+
+      const state = Math.random().toString(36).substring(2, 15);
+
+      // Store state in session or cache for validation (optional but recommended)
+      const googleAuthUrl =
+         `https://accounts.google.com/o/oauth2/v2/auth?` +
+         `client_id=${GOOGLE_CLIENT_ID}&` +
+         `redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&` +
+         `response_type=code&` +
+         `scope=openid email profile&` +
+         `state=${state}`;
+
+      res.redirect(googleAuthUrl);
+   } catch (error) {
+      logger.error('Google OAuth initiation error:', error);
+      res.redirect(
+         `${FRONTEND_URL}/login?success=false&message=Authentication failed`
+      );
+   }
+};
+
+/**
+ * Handle Google OAuth callback
+ */
+export const googleAuthCallback = async (
+   req: Request,
+   res: Response,
+   next: NextFunction
+): Promise<void> => {
+   const { code, state } = req.query;
+
+   try {
+      if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+         logger.error('Google OAuth credentials not configured');
+         res.redirect(
+            `${FRONTEND_URL}/login?success=false&message=${encodeURIComponent('OAuth not configured')}`
+         );
+         return;
+      }
+
+      if (!code || typeof code !== 'string') {
+         res.redirect(
+            `${FRONTEND_URL}/login?success=false&message=${encodeURIComponent('Authorization code missing')}`
+         );
+         return;
+      }
+
+      // Exchange authorization code for access token
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+         method: 'POST',
+         headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+         },
+         body: new URLSearchParams({
+            client_id: GOOGLE_CLIENT_ID,
+            client_secret: GOOGLE_CLIENT_SECRET,
+            code: code,
+            redirect_uri: GOOGLE_REDIRECT_URI,
+            grant_type: 'authorization_code',
+         }),
+      });
+
+      if (!tokenResponse.ok) {
+         throw new Error('Failed to exchange code for tokens');
+      }
+
+      const tokens = await tokenResponse.json();
+      const { access_token, id_token } = tokens;
+
+      if (!access_token) {
+         throw new Error('No access token received from Google');
+      }
+
+      // Get user profile using access token
+      const profileResponse = await fetch(
+         'https://www.googleapis.com/oauth2/v2/userinfo',
+         {
+            headers: {
+               Authorization: `Bearer ${access_token}`,
+            },
+         }
+      );
+
+      if (!profileResponse.ok) {
+         throw new Error('Failed to fetch user profile');
+      }
+
+      const profile = await profileResponse.json();
+
+      // Validate required profile fields
+      if (!profile.id || !profile.email) {
+         throw new Error('Incomplete profile data from Google');
+      }
+
+      // Create GoogleCredentials object similar to your existing verifyGoogleToken function
+      const googleCredentials = {
+         googleId: profile.id,
+         email: profile.email,
+         name: profile.name || profile.email,
+         profilePicture: profile.picture,
+         emailVerified: profile.verified_email,
+      };
+
+      // Authenticate using your existing service
+      const loginResult = await AuthService.authenticateWithGoogle(
+         googleCredentials,
+         req.headers['user-agent'],
+         req.ip
+      );
+
+      if (!loginResult.success || !loginResult.admin) {
+         const errorMessage = loginResult.message || 'Authentication failed';
+         res.redirect(
+            `${FRONTEND_URL}/login?success=false&message=${encodeURIComponent(errorMessage)}`
+         );
+         return;
+      }
+
+      // Now TypeScript knows loginResult.admin is defined
+      const adminData = {
+         id: loginResult.admin.id,
+         email: loginResult.admin.email,
+         name: loginResult.admin.name,
+         role: loginResult.admin.role,
+         profilePicture: loginResult.admin.profilePicture || '',
+      };
+
+      const queryParams = new URLSearchParams({
+         success: 'true',
+         message: 'Login successful',
+         token: loginResult.token || '',
+         admin: JSON.stringify(adminData),
+      });
+
+      res.redirect(
+         `${FRONTEND_URL}/admin/auth/callback?${queryParams.toString()}`
+      );
+   } catch (error) {
+      logger.error('Google OAuth callback error:', error);
+      const errorMessage =
+         error instanceof Error ? error.message : 'Authentication failed';
+      res.redirect(
+         `${FRONTEND_URL}/login?success=false&message=${encodeURIComponent(errorMessage)}`
+      );
+   }
+};
+
+/**
+ * Setup first system admin (using OAuth flow)
+ */
+export const setupFirstAdminWithOAuth = async (
+   req: Request,
+   res: Response,
+   next: NextFunction
+): Promise<void> => {
+   try {
+      if (!GOOGLE_CLIENT_ID) {
+         res.status(500).json({
+            success: false,
+            message: 'Google OAuth not configured',
+         });
+         return;
+      }
+
+      const { setupKey } = req.body;
+
+      const expectedSetupKey = process.env.FIRST_ADMIN_SETUP_KEY;
+      if (!expectedSetupKey || setupKey !== expectedSetupKey) {
+         res.status(401).json({
+            success: false,
+            message: 'Invalid setup key',
+         });
+         return;
+      }
+
+      // Store setup key in session/cache and redirect to OAuth
+      const state = `setup_${Math.random().toString(36).substring(2, 15)}`;
+
+      const googleAuthUrl =
+         `https://accounts.google.com/o/oauth2/v2/auth?` +
+         `client_id=${GOOGLE_CLIENT_ID}&` +
+         `redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&` +
+         `response_type=code&` +
+         `scope=openid email profile&` +
+         `state=${state}`;
+
+      res.json({
+         success: true,
+         message: 'Redirecting to Google OAuth',
+         redirectUrl: googleAuthUrl,
+      });
+   } catch (error) {
+      next(error);
+   }
+};
+
+// Keep all your existing functions unchanged
 export const setupFirstAdmin = async (
    req: Request,
    res: Response,
@@ -33,9 +250,8 @@ export const setupFirstAdmin = async (
 ): Promise<void> => {
    try {
       const validatedData = setupFirstAdminSchema.parse(req.body);
-
-      // Verify setup key
       const expectedSetupKey = process.env.FIRST_ADMIN_SETUP_KEY;
+
       if (!expectedSetupKey || validatedData.setupKey !== expectedSetupKey) {
          res.status(401).json({
             success: false,
@@ -44,12 +260,9 @@ export const setupFirstAdmin = async (
          return;
       }
 
-      // Verify Google token first
       const googleCredentials = await AuthService.verifyGoogleToken(
          validatedData.googleId
       );
-
-      console.log('GOOGLE_CREDENTIALS', googleCredentials);
 
       await createFirstSystemAdminRepository({
          ...validatedData,
@@ -59,17 +272,16 @@ export const setupFirstAdmin = async (
          profilePicture: googleCredentials.profilePicture,
       });
 
-      // Authenticate with Google to create session
       const loginResult = await AuthService.authenticateWithGoogle(
          googleCredentials,
          req.headers['user-agent'],
          req.ip
       );
 
-      if (!loginResult.success) {
+      if (!loginResult.success || !loginResult.admin) {
          res.status(500).json({
             success: false,
-            message: 'Failed to create admin session',
+            message: loginResult.message || 'Failed to create admin session',
          });
          return;
       }
@@ -87,9 +299,6 @@ export const setupFirstAdmin = async (
    }
 };
 
-/**
- * Invite new admin (System Admin only)
- */
 export const inviteAdmin = async (
    req: Request,
    res: Response,
@@ -99,7 +308,6 @@ export const inviteAdmin = async (
       const validatedData = inviteAdminSchema.parse(req.body);
       const invitedBy = req.admin!.id;
 
-      // System admins can invite anyone, regular admins can only invite other regular admins
       if (
          req.admin!.role !== 'SYSTEM_ADMIN' &&
          validatedData.role === 'SYSTEM_ADMIN'
@@ -112,8 +320,6 @@ export const inviteAdmin = async (
       }
 
       const newAdmin = await inviteAdminRepository(validatedData, invitedBy);
-
-      // Generate invitation URL using AuthService
       const inviteLink = AuthService.generateInviteUrl(newAdmin.inviteToken!);
 
       SendMail({
@@ -122,11 +328,7 @@ export const inviteAdmin = async (
          html: `
         <h2>You've been invited to join as an admin</h2>
         <p>Dear ${newAdmin.name},</p>
-        <p>You have been invited by ${
-           req.admin!.name
-        } to join the National Toilet Campaign admin panel as a <strong>${
-           newAdmin.role
-        }</strong>.</p>
+        <p>You have been invited by ${req.admin!.name} to join the National Toilet Campaign admin panel as a <strong>${newAdmin.role}</strong>.</p>
         <p>Click the link below to accept your invitation:</p>
         <p><a href="${inviteLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Accept Invitation</a></p>
         <p>This invitation will expire in 7 days.</p>
@@ -151,9 +353,6 @@ export const inviteAdmin = async (
    }
 };
 
-/**
- * Accept invitation and activate admin account
- */
 export const acceptInvite = async (
    req: Request,
    res: Response,
@@ -162,7 +361,6 @@ export const acceptInvite = async (
    try {
       const validatedData = acceptInviteSchema.parse(req.body);
 
-      // Verify invite token
       const pendingAdmin = await getAdminByInviteTokenRepository(
          validatedData.inviteToken
       );
@@ -174,15 +372,13 @@ export const acceptInvite = async (
          return;
       }
 
-      // Verify Google token
       const googleCredentials = await AuthService.verifyGoogleToken(
          validatedData.googleId
       );
-
-      // Check if Google account is already used by another admin
       const existingAdmin = await getAdminByGoogleIdRepository(
          googleCredentials.googleId
       );
+
       if (existingAdmin) {
          res.status(400).json({
             success: false,
@@ -192,25 +388,23 @@ export const acceptInvite = async (
          return;
       }
 
-      // Activate admin
       await activateAdminRepository(validatedData.inviteToken, {
          googleId: googleCredentials.googleId,
-         email: pendingAdmin.email, // Use existing email
-         name: pendingAdmin.name, // Use existing name
+         email: pendingAdmin.email,
+         name: pendingAdmin.name,
          profilePicture: googleCredentials.profilePicture,
       });
 
-      // Authenticate with Google to create session
       const loginResult = await AuthService.authenticateWithGoogle(
          googleCredentials,
          req.headers['user-agent'],
          req.ip
       );
 
-      if (!loginResult.success) {
+      if (!loginResult.success || !loginResult.admin) {
          res.status(500).json({
             success: false,
-            message: 'Failed to create admin session',
+            message: loginResult.message || 'Failed to create admin session',
          });
          return;
       }
@@ -228,9 +422,6 @@ export const acceptInvite = async (
    }
 };
 
-/**
- * Google OAuth login
- */
 export const googleLogin = async (
    req: Request,
    res: Response,
@@ -247,21 +438,18 @@ export const googleLogin = async (
          return;
       }
 
-      // Verify Google token and get credentials
       const googleCredentials =
          await AuthService.verifyGoogleToken(googleToken);
-
-      // Authenticate with Google
       const loginResult = await AuthService.authenticateWithGoogle(
          googleCredentials,
          req.headers['user-agent'],
          req.ip
       );
 
-      if (!loginResult.success) {
+      if (!loginResult.success || !loginResult.admin) {
          res.status(401).json({
             success: false,
-            message: loginResult.message,
+            message: loginResult.message || 'Authentication failed',
          });
          return;
       }
@@ -279,9 +467,6 @@ export const googleLogin = async (
    }
 };
 
-/**
- * Logout admin
- */
 export const logout = async (
    req: Request,
    res: Response,
@@ -291,10 +476,8 @@ export const logout = async (
       const token = AuthService.extractTokenFromHeader(
          req.headers.authorization
       );
-
       if (token) {
          const logoutSuccess = await AuthService.logout(token);
-
          if (!logoutSuccess) {
             logger.warn('Failed to invalidate session during logout');
          }
@@ -309,9 +492,6 @@ export const logout = async (
    }
 };
 
-/**
- * Get all admins (System Admin only)
- */
 export const getAllAdmins = async (
    req: Request,
    res: Response,
@@ -338,9 +518,6 @@ export const getAllAdmins = async (
    }
 };
 
-/**
- * Update admin (System Admin only)
- */
 export const updateAdmin = async (
    req: Request,
    res: Response,
@@ -350,7 +527,6 @@ export const updateAdmin = async (
       const { id } = getAdminSchema.parse(req.params);
       const updateData = updateAdminSchema.parse({ id, ...req.body });
 
-      // Check if admin exists
       const existingAdmin = await getAdminByIdRepository(id);
       if (!existingAdmin) {
          res.status(404).json({
@@ -360,7 +536,6 @@ export const updateAdmin = async (
          return;
       }
 
-      // Prevent admins from updating their own role
       if (id === req.admin!.id && updateData.role) {
          res.status(400).json({
             success: false,
@@ -387,9 +562,6 @@ export const updateAdmin = async (
    }
 };
 
-/**
- * Delete admin (System Admin only)
- */
 export const deleteAdmin = async (
    req: Request,
    res: Response,
@@ -398,7 +570,6 @@ export const deleteAdmin = async (
    try {
       const { id } = getAdminSchema.parse(req.params);
 
-      // Prevent admins from deleting themselves
       if (id === req.admin!.id) {
          res.status(400).json({
             success: false,
@@ -427,9 +598,6 @@ export const deleteAdmin = async (
    }
 };
 
-/**
- * Get admin statistics
- */
 export const getAdminStats = async (
    req: Request,
    res: Response,
@@ -448,9 +616,6 @@ export const getAdminStats = async (
    }
 };
 
-/**
- * Get current admin profile
- */
 export const getProfile = async (
    req: Request,
    res: Response,

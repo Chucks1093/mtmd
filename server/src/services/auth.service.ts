@@ -226,7 +226,7 @@ class AuthService {
     * Generate invite URL for email
     */
    generateInviteUrl(inviteToken: string): string {
-      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const baseUrl = process.env.FRONTEND_URL;
       return `${baseUrl}/admin/accept-invite?token=${inviteToken}`;
    }
 
@@ -234,7 +234,7 @@ class AuthService {
     * Generate setup URL for first admin
     */
    generateSetupUrl(): string {
-      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const baseUrl = process.env.FRONTEND_URL;
       return `${baseUrl}/admin/setup`;
    }
 }

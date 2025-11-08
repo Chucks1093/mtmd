@@ -36,7 +36,7 @@ export const createReport = async (
 
       // Send confirmation email if email provided
       if (newReport.submitterEmail) {
-         SendMail({
+         await SendMail({
             to: newReport.submitterEmail,
             subject:
                'Toilet Report Submission Received - National Toilet Campaign',
