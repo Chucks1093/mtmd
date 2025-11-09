@@ -5,6 +5,7 @@ import FinancialMetricCard, {
 import { Tabs } from '@/components/ui/tabs';
 import { numberWithCommas } from '@/lib/utils';
 import { reportService } from '@/services/report.service';
+import showToast from '@/utils/toast.util';
 
 import { motion } from 'framer-motion';
 import { Download, Clipboard, CheckCircle, Clock, XCircle } from 'lucide-react';
@@ -12,12 +13,29 @@ import { useEffect, useState } from 'react';
 
 function Reports() {
 	const [loadingFinancialData, setLoadingFinancialData] = useState(false);
+	const [loadingExport, setLoadingExport] = useState(false);
 	const [financialData, setFinancialData] = useState({
 		totalReports: 0,
 		pendingReports: 0,
 		approvedReports: 0,
 		rejectedReports: 0,
 	});
+
+	const handleExportReports = async () => {
+		try {
+			setLoadingExport(true);
+			showToast.success('Preparing CSV export...');
+
+			await reportService.exportReports('pdf');
+
+			showToast.success('Reports exported successfully!');
+		} catch (error) {
+			console.error('Export error:', error);
+			showToast.error('Failed to export reports');
+		} finally {
+			setLoadingExport(false);
+		}
+	};
 
 	useEffect(() => {
 		const fetchReportData = async () => {
@@ -51,12 +69,14 @@ function Reports() {
 			<div className="flex gap-5  lg:items-center justify-between mb-6 flex-col lg:flex-row">
 				<h1 className="text-2xl font-jakarta">Toilet Reports</h1>
 				<button
+					onClick={handleExportReports}
+					disabled={loadingExport}
 					className={`bg-blue-600 w-fit hover:bg-blue-700 active:bg-blue-800
         disabled:bg-blue-300 disabled:cursor-not-allowed
 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2 justify-center`}
 				>
 					<Download />
-					Export CSV
+					{loadingExport ? 'Exporting...' : 'Export CSV'}
 				</button>
 			</div>
 			{loadingFinancialData && (

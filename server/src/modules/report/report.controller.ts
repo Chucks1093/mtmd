@@ -5,6 +5,7 @@ import {
    filterReportsSchema,
    updateReportStatusSchema,
    getReportsByLocationSchema,
+   exportReportsSchema,
 } from './report.schema';
 import {
    createReportRepository,
@@ -15,6 +16,9 @@ import {
    getReportsByLocationRepository,
    getReportStatsRepository,
    getRecentReportsRepository,
+   generateCSV,
+   generateExcel,
+   generatePDF,
 } from './report.utils';
 import { SendMail, SendMailAsync } from '../../utils/mail.util';
 import { logger } from '../../utils/logger.utils';
@@ -285,6 +289,108 @@ export const getRecentReports = async (
          data: reports,
       });
    } catch (error) {
+      next(error);
+   }
+};
+
+/**
+ * Export reports data in various formats (Admin only)
+ */
+export const exportReports = async (
+   req: Request,
+   res: Response,
+   next: NextFunction
+): Promise<void> => {
+   try {
+      // Validate query parameters
+      const validatedParams = exportReportsSchema.parse({
+         format: req.query.format,
+         status: req.query.status,
+         state: req.query.state,
+         lga: req.query.lga,
+         facilityType: req.query.facilityType,
+         toiletCondition: req.query.toiletCondition,
+         page: req.query.page ? parseInt(req.query.page as string) : undefined,
+         limit: req.query.limit ? parseInt(req.query.limit as string) : 1000, // Default to larger limit for exports
+      });
+
+      logger.info('Exporting reports', {
+         format: validatedParams.format,
+         filters: validatedParams,
+         adminId: req.admin?.id,
+      });
+
+      // Get all reports based on filters (use large limit for export)
+      const reportsData = await getPaginatedReportsRepository({
+         page: validatedParams.page || 1,
+         limit: validatedParams.limit || 1000,
+         status: validatedParams.status,
+         state: validatedParams.state,
+         lga: validatedParams.lga,
+         facilityType: validatedParams.facilityType,
+         toiletCondition: validatedParams.toiletCondition,
+      });
+
+      const { format } = validatedParams;
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `toilet_reports_${timestamp}`;
+
+      // Set appropriate headers based on format
+      switch (format) {
+         case 'csv':
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader(
+               'Content-Disposition',
+               `attachment; filename="${filename}.csv"`
+            );
+
+            // Generate CSV
+            const csvData = generateCSV(reportsData.reports);
+            res.send(csvData);
+            break;
+
+         case 'excel':
+            res.setHeader(
+               'Content-Type',
+               'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            );
+            res.setHeader(
+               'Content-Disposition',
+               `attachment; filename="${filename}.xlsx"`
+            );
+
+            // Generate Excel (you'll need to install xlsx package)
+            const excelBuffer = await generateExcel(reportsData.reports);
+            res.send(excelBuffer);
+            break;
+
+         case 'pdf':
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader(
+               'Content-Disposition',
+               `attachment; filename="${filename}.pdf"`
+            );
+
+            // Generate PDF (you'll need to install pdfkit or similar)
+            const pdfBuffer = await generatePDF(reportsData.reports);
+            console.log('GENERATING PDF');
+            res.send(pdfBuffer);
+            break;
+
+         default:
+            res.status(400).json({
+               success: false,
+               message: 'Unsupported export format',
+            });
+      }
+
+      logger.info('Reports export completed', {
+         format,
+         recordCount: reportsData.reports.length,
+         adminId: req.admin?.id,
+      });
+   } catch (error) {
+      logger.error('Export reports error:', error);
       next(error);
    }
 };

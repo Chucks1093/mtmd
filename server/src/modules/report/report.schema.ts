@@ -78,6 +78,34 @@ export const getReportsByLocationSchema = z.object({
    lga: z.string().optional(),
 });
 
+// Export schema validation
+export const exportReportsSchema = z.object({
+   format: z.enum(['csv', 'excel', 'pdf'], {
+      required_error: 'Export format is required',
+      invalid_type_error: 'Format must be csv, excel, or pdf',
+   }),
+   status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+   state: z.string().optional(),
+   lga: z.string().optional(),
+   facilityType: z
+      .enum([
+         'PUBLIC',
+         'PRIVATE',
+         'SCHOOL',
+         'HOSPITAL',
+         'MARKET',
+         'OFFICE',
+         'RESIDENTIAL',
+         'OTHER',
+      ])
+      .optional(),
+   toiletCondition: z
+      .enum(['EXCELLENT', 'GOOD', 'FAIR', 'POOR', 'VERY_POOR'])
+      .optional(),
+   page: z.number().int().positive().optional(),
+   limit: z.number().int().positive().max(1000).optional(),
+});
+
 // Types derived from Zod schemas
 export type ReportStatus = z.infer<typeof ReportStatusEnum>;
 export type ToiletCondition = z.infer<typeof ToiletConditionEnum>;

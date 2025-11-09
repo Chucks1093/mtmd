@@ -4,6 +4,8 @@ import {
    FilterReports,
    UpdateReportStatus,
 } from './report.schema';
+import { logger } from '../../utils/logger.utils';
+import puppeteer from 'puppeteer';
 
 export async function createReportRepository(data: CreateReport) {
    return await prisma.report.create({
@@ -175,4 +177,186 @@ export async function getRecentReportsRepository(limit: number = 10) {
          createdAt: true,
       },
    });
+}
+
+/**
+ * Generate CSV from reports data
+ */
+export function generateCSV(reports: any[]): string {
+   if (reports.length === 0) {
+      return 'No data available';
+   }
+
+   // CSV headers
+   const headers = [
+      'ID',
+      'Submitter Name',
+      'Submitter Email',
+      'Submitter Phone',
+      'State',
+      'LGA',
+      'Ward',
+      'Specific Address',
+      'Coordinates',
+      'Toilet Condition',
+      'Facility Type',
+      'Status',
+      'Description',
+      'Admin Notes',
+      'Images Count',
+      'Created At',
+      'Updated At',
+      'Reviewed At',
+      'Reviewed By',
+   ];
+
+   // Convert reports to CSV rows
+   const csvRows = reports.map(report => [
+      report.id,
+      report.submitterName,
+      report.submitterEmail || '',
+      report.submitterPhone || '',
+      report.state,
+      report.lga,
+      report.ward || '',
+      report.specificAddress,
+      report.coordinates || '',
+      report.toiletCondition,
+      report.facilityType,
+      report.status,
+      report.description || '',
+      report.adminNotes || '',
+      report.images?.length || 0,
+      report.createdAt,
+      report.updatedAt,
+      report.reviewedAt || '',
+      report.reviewedBy || '',
+   ]);
+
+   // Combine headers and rows
+   const allRows = [headers, ...csvRows];
+
+   // Convert to CSV string
+   return allRows
+      .map(row =>
+         row
+            .map(field =>
+               typeof field === 'string' && field.includes(',')
+                  ? `"${field.replace(/"/g, '""')}"`
+                  : field
+            )
+            .join(',')
+      )
+      .join('\n');
+}
+
+/**
+ * Generate Excel from reports data
+ * Note: You'll need to install the 'xlsx' package: npm install xlsx @types/xlsx
+ */
+export async function generateExcel(reports: any[]): Promise<Buffer> {
+   try {
+      const XLSX = require('xlsx');
+
+      // Prepare data for Excel
+      const excelData = reports.map(report => ({
+         ID: report.id,
+         'Submitter Name': report.submitterName,
+         'Submitter Email': report.submitterEmail || '',
+         'Submitter Phone': report.submitterPhone || '',
+         State: report.state,
+         LGA: report.lga,
+         Ward: report.ward || '',
+         'Specific Address': report.specificAddress,
+         Coordinates: report.coordinates || '',
+         'Toilet Condition': report.toiletCondition,
+         'Facility Type': report.facilityType,
+         Status: report.status,
+         Description: report.description || '',
+         'Admin Notes': report.adminNotes || '',
+         'Images Count': report.images?.length || 0,
+         'Created At': report.createdAt,
+         'Updated At': report.updatedAt,
+         'Reviewed At': report.reviewedAt || '',
+         'Reviewed By': report.reviewedBy || '',
+      }));
+
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Toilet Reports');
+
+      // Generate buffer
+      return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+   } catch (error) {
+      logger.error('Excel generation error:', error);
+      throw new Error('Failed to generate Excel file');
+   }
+}
+
+/**
+ * Generate PDF from reports data
+ * Note: You'll need to install a PDF library like 'pdfkit': npm install pdfkit @types/pdfkit
+ */
+export async function generatePDF(reports: any[]): Promise<Buffer> {
+   const browser = await puppeteer.launch();
+   const page = await browser.newPage();
+
+   const htmlContent = `
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; }
+        </style>
+      </head>
+      <body>
+        <h1>Toilet Reports Export</h1>
+        <p>Generated on: ${new Date().toLocaleDateString()}</p>
+        <p>Total Reports: ${reports.length}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Submitter</th>
+              <th>Location</th>
+              <th>Condition</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${reports
+               .map(
+                  report => `
+              <tr>
+                <td>${report.submitterName}</td>
+                <td>${report.state}, ${report.lga}</td>
+                <td>${report.toiletCondition}</td>
+                <td>${report.status}</td>
+                <td>${new Date(report.createdAt).toLocaleDateString()}</td>
+              </tr>
+            `
+               )
+               .join('')}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `;
+
+   await page.setContent(htmlContent);
+   const pdfUint8Array = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' },
+   });
+
+   await browser.close();
+
+   // Convert Uint8Array to Buffer - this fixes the TypeScript error
+   return Buffer.from(pdfUint8Array);
 }

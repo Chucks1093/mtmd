@@ -1,5 +1,6 @@
 // src/tspec.config.ts - Updated for your existing codebase
 import { Tspec } from 'tspec';
+import { envConfig } from './config';
 
 const tspecOptions: Tspec.GenerateParams = {
    specPathGlobs: [
@@ -16,11 +17,11 @@ const tspecOptions: Tspec.GenerateParams = {
          'API documentation for National Toilet Campaign - A platform for reporting and managing toilet facility conditions across Nigeria',
       servers: [
          {
-            url: 'http://localhost:3000',
+            url: `http://localhost:${envConfig.PORT}`,
             description: 'Development server',
          },
          {
-            url: 'https://nodejs-production-859c.up.railway.app',
+            url: envConfig.BACKEND_URL,
             description: 'Production server',
          },
       ],

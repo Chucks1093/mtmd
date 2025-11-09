@@ -8,6 +8,7 @@ import {
    deleteReport,
    getReportStats,
    getRecentReports,
+   exportReports,
 } from './report.controller';
 import { authenticateAdmin } from '../../middlewares/auth.middleware'; // Assuming you have auth middleware
 
@@ -20,6 +21,7 @@ reportRouter.get('/stats', getReportStats); // For public statistics
 reportRouter.get('/recent', getRecentReports); // For recent approved reports
 
 // Admin routes (protected)
+reportRouter.get('/export', authenticateAdmin, exportReports);
 reportRouter.get('/', authenticateAdmin, getAllReports); // Get all reports with filters
 reportRouter.get('/:id', authenticateAdmin, getReport); // Get specific report
 reportRouter.patch('/:id/status', authenticateAdmin, updateReportStatus); // Update report status

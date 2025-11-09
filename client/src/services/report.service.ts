@@ -501,6 +501,19 @@ class ReportService {
 				params: { ...params, format },
 				responseType: 'blob',
 			});
+			// Create download link
+			const url = window.URL.createObjectURL(response.data);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = `toilet_reports_${
+				new Date().toISOString().split('T')[0]
+			}.${format}`;
+			document.body.appendChild(link);
+			link.click();
+
+			// Cleanup
+			window.URL.revokeObjectURL(url);
+			document.body.removeChild(link);
 			return response.data;
 		} catch (error) {
 			throw this.handleError(error);
