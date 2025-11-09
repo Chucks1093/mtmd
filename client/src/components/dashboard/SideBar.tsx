@@ -38,9 +38,15 @@ const navigationData: NavigationSection[] = [
 			},
 			{
 				icon: ClipboardList, // ← Changed from Landmark - better for reports
-				label: 'Report',
+				label: 'Reports',
 				id: 'dashboard',
 				link: '/admin/dashboard/reports',
+			},
+			{
+				icon: ClipboardList, // ← Changed from Landmark - better for reports
+				label: 'Admins',
+				id: 'admins',
+				link: '/admin/dashboard/admins',
 			},
 			{
 				icon: Coins, // ← Changed from FileSpreadsheet - better for donations

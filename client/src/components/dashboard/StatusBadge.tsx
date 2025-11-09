@@ -1,3 +1,4 @@
+import React from 'react';
 import {
 	Clock,
 	CheckCircle,
@@ -10,6 +11,10 @@ import {
 	Building,
 	Users,
 	MoreHorizontal,
+	Shield,
+	User,
+	UserX,
+	AlertTriangle,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -34,6 +39,14 @@ export type FacilityType =
 	| 'OFFICE'
 	| 'RESIDENTIAL'
 	| 'OTHER';
+
+// Admin types
+export type AdminStatusType =
+	| 'PENDING'
+	| 'ACTIVE'
+	| 'SUSPENDED'
+	| 'DEACTIVATED';
+export type AdminRoleType = 'SYSTEM_ADMIN' | 'ADMIN';
 
 export const renderUserAvatar = (user: { image?: string; name: string }) => {
 	const getInitials = (name: string) => {
@@ -210,6 +223,78 @@ export const getFacilityTypeBadge = (facilityType: FacilityType) => {
 				>
 					<MoreHorizontal className="size-4 mr-1" />
 					Other
+				</span>
+			);
+		default:
+			return null;
+	}
+};
+
+export const getAdminStatusBadge = (status: AdminStatusType) => {
+	const base =
+		'flex items-center px-2 py-1 rounded-sm text-xs font-medium border w-fit';
+
+	switch (status) {
+		case 'ACTIVE':
+			return (
+				<span
+					className={`${base} bg-green-50 text-green-700 border-green-400`}
+				>
+					<CheckCircle className="size-4 mr-1" />
+					Active
+				</span>
+			);
+		case 'PENDING':
+			return (
+				<span
+					className={`${base} bg-orange-50 text-orange-700 border-orange-400`}
+				>
+					<Clock className="size-4 mr-1" />
+					Pending
+				</span>
+			);
+		case 'SUSPENDED':
+			return (
+				<span
+					className={`${base} bg-yellow-50 text-yellow-700 border-yellow-400`}
+				>
+					<AlertTriangle className="size-4 mr-1" />
+					Suspended
+				</span>
+			);
+		case 'DEACTIVATED':
+			return (
+				<span className={`${base} bg-red-50 text-red-700 border-red-400`}>
+					<UserX className="size-4 mr-1" />
+					Deactivated
+				</span>
+			);
+		default:
+			return null;
+	}
+};
+
+export const getAdminRoleBadge = (role: AdminRoleType) => {
+	const base =
+		'flex items-center px-2 py-1 rounded-sm text-xs font-medium border w-fit';
+
+	switch (role) {
+		case 'SYSTEM_ADMIN':
+			return (
+				<span
+					className={`${base} bg-purple-50 text-purple-700 border-purple-400`}
+				>
+					<Shield className="size-4 mr-1" />
+					System Admin
+				</span>
+			);
+		case 'ADMIN':
+			return (
+				<span
+					className={`${base} bg-blue-50 text-blue-700 border-blue-400`}
+				>
+					<User className="size-4 mr-1" />
+					Admin
 				</span>
 			);
 		default:

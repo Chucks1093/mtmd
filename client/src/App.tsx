@@ -8,6 +8,7 @@ import DashboardLayout from './pages/DashboardLayout';
 import { adminLoader } from './helpers/admin.loader';
 import Reports from './pages/Reports';
 import ReportDetails from './pages/ReportDetails';
+import Admins from './pages/Admins';
 
 const router = createBrowserRouter([
 	{
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
 			{
 				path: '/admin/dashboard/reports',
 				element: <Reports />,
+			},
+			{
+				path: '/admin/dashboard/admins',
+				element: <Admins />,
 			},
 			{
 				path: '/admin/dashboard/reports/:id',
