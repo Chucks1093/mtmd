@@ -97,7 +97,7 @@ export const errorHandler: ErrorRequestHandler = (
       res.status(400).json({
          success: false,
          message,
-         ...(process.env.NODE_ENV === 'development' && { error: err.message }),
+         ...(envConfig.MODE === 'development' && { error: err.message }),
       });
       return;
    }
@@ -137,14 +137,14 @@ export const errorHandler: ErrorRequestHandler = (
    // Default error response
    const statusCode = err.statusCode || err.status || 500;
    const message =
-      process.env.NODE_ENV === 'production'
+      envConfig.MODE === 'production'
          ? 'Internal server error'
          : err.message || 'Something went wrong!';
 
    res.status(statusCode).json({
       success: false,
       message,
-      ...(process.env.NODE_ENV === 'development' && {
+      ...(envConfig.MODE === 'development' && {
          stack: err.stack,
          error: err,
       }),

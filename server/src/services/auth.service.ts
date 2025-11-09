@@ -6,6 +6,7 @@ import {
    getAdminSessionRepository,
    deleteAdminSessionRepository,
 } from '../modules/admin/admin.utils';
+import { envConfig } from '../config';
 
 interface GoogleTokenPayload {
    googleId: string;
@@ -33,9 +34,9 @@ class AuthService {
 
    constructor() {
       this.client = new OAuth2Client(
-         process.env.GOOGLE_CLIENT_ID,
-         process.env.GOOGLE_CLIENT_SECRET,
-         process.env.GOOGLE_REDIRECT_URI
+         envConfig.GOOGLE_CLIENT_ID,
+         envConfig.GOOGLE_CLIENT_SECRET,
+         `${envConfig.BACKEND_URL}/api/v1/admin/auth/google/callback`
       );
    }
 
@@ -46,7 +47,7 @@ class AuthService {
       try {
          const ticket = await this.client.verifyIdToken({
             idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID,
+            audience: envConfig.GOOGLE_CLIENT_ID,
          });
 
          const payload = ticket.getPayload();
@@ -226,7 +227,7 @@ class AuthService {
     * Generate invite URL for email
     */
    generateInviteUrl(inviteToken: string): string {
-      const baseUrl = process.env.FRONTEND_URL;
+      const baseUrl = envConfig.FRONTEND_URL;
       return `${baseUrl}/admin/accept-invite?token=${inviteToken}`;
    }
 
@@ -234,7 +235,7 @@ class AuthService {
     * Generate setup URL for first admin
     */
    generateSetupUrl(): string {
-      const baseUrl = process.env.FRONTEND_URL;
+      const baseUrl = envConfig.FRONTEND_URL;
       return `${baseUrl}/admin/setup`;
    }
 }

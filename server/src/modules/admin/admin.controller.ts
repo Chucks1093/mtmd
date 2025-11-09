@@ -209,7 +209,7 @@ export const setupFirstAdminWithOAuth = async (
 
       const { setupKey } = req.body;
 
-      const expectedSetupKey = process.env.FIRST_ADMIN_SETUP_KEY;
+      const expectedSetupKey = envConfig.FIRST_ADMIN_SETUP_KEY;
       if (!expectedSetupKey || setupKey !== expectedSetupKey) {
          res.status(401).json({
             success: false,
@@ -247,7 +247,7 @@ export const setupFirstAdmin = async (
 ): Promise<void> => {
    try {
       const validatedData = setupFirstAdminSchema.parse(req.body);
-      const expectedSetupKey = process.env.FIRST_ADMIN_SETUP_KEY;
+      const expectedSetupKey = envConfig.FIRST_ADMIN_SETUP_KEY;
 
       if (!expectedSetupKey || validatedData.setupKey !== expectedSetupKey) {
          res.status(401).json({

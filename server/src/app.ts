@@ -7,6 +7,7 @@ import { corsMiddleware } from './middlewares/cors.middleware';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import tspecOptions from './tspec.config';
+import { envConfig } from './config';
 
 const app: Express = express();
 
@@ -24,7 +25,7 @@ app.get('/health', (req: Request, res: Response) => {
       message: 'National Toilet Campaign API is running',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
-      environment: process.env.NODE_ENV || 'development',
+      environment: envConfig.MODE || 'development',
    });
 });
 
