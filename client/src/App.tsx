@@ -1,4 +1,4 @@
-import './app.css';
+import './App.css';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import AdminLogin from './pages/Login';
 import { Toaster } from 'react-hot-toast';
