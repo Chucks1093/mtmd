@@ -1,8 +1,6 @@
-import * as nodemailer from 'nodemailer';
-import Mail, { Attachment } from 'nodemailer/lib/mailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { Resend } from 'resend';
 
-// Project-specific email template
+// Project-specific email template (keeping your existing design)
 const generateProjectTemplate = (content: string, subject: string) => `
 <!DOCTYPE html>
 <html>
@@ -33,12 +31,15 @@ const generateProjectTemplate = (content: string, subject: string) => `
 </html>
 `;
 
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 export interface ISendMailOptions {
    to: string;
    subject: string;
    text?: string;
    html?: string;
-   attachments?: Attachment[];
+   attachments?: any[]; // Resend uses different attachment format
 }
 
 export const SendMail = async ({
@@ -48,44 +49,56 @@ export const SendMail = async ({
    html,
    attachments,
 }: ISendMailOptions) => {
-   const { MAIL_USERNAME, MAIL_PASSWORD, MAIL_HOST } = process.env;
+   const { RESEND_API_KEY, RESEND_FROM_EMAIL } = process.env;
 
    // Skip email in development if not configured
-   if (!MAIL_HOST || !MAIL_USERNAME || !MAIL_PASSWORD) {
-      console.log('📧 Email skipped (not configured):', { to, subject });
+   if (!RESEND_API_KEY || !RESEND_FROM_EMAIL) {
+      console.log('📧 Email skipped (Resend not configured):', { to, subject });
       return true;
    }
 
-   const transporter = nodemailer.createTransport({
-      host: MAIL_HOST,
-      port: 465,
-      secure: true,
-      auth: {
-         user: MAIL_USERNAME,
-         pass: MAIL_PASSWORD,
-      },
-   } as SMTPTransport['options']);
-
-   const mailOptions: Mail['options'] = {
-      from: `National Toilet Campaign <${MAIL_USERNAME}>`, // Project-specific sender
-      to,
-      subject,
-      html: html || generateProjectTemplate(text || '', subject),
-      text,
-      attachments,
-   };
-
    try {
-      await transporter.sendMail(mailOptions);
-      console.log('✅ Email sent successfully to:', to);
+      const result = await resend.emails.send({
+         from: `National Toilet Campaign <${RESEND_FROM_EMAIL}>`,
+         to: [to],
+         subject,
+         html: html || generateProjectTemplate(text || '', subject),
+         text,
+         ...(attachments && attachments.length > 0 && { attachments }),
+      });
+
+      console.log(
+         '✅ Email sent successfully via Resend to:',
+         to,
+         'ID:',
+         result.data
+      );
       return true;
    } catch (error) {
-      console.error('❌ Failed to send email:', error);
+      console.error('❌ Failed to send email via Resend:', error);
       return false;
    }
 };
 
-// Project-specific email templates
+// Async version that doesn't block API responses
+export const SendMailAsync = async ({
+   to,
+   subject,
+   text,
+   html,
+   attachments,
+}: ISendMailOptions) => {
+   // Fire and forget - don't wait for response
+   SendMail({ to, subject, text, html, attachments })
+      .then(() => {
+         console.log('📧 Async email sent to:', to);
+      })
+      .catch(error => {
+         console.error('📧 Async email failed:', error);
+      });
+};
+
+// Project-specific email templates (keeping your existing ones)
 export const EmailTemplates = {
    reportSubmission: (
       submitterName: string,
@@ -100,6 +113,67 @@ export const EmailTemplates = {
       <p>Thank you for contributing to better sanitation in Nigeria!</p>
    `,
 
+   reportNotification: (reportData: any) => `
+      <h2>New Toilet Report Submitted</h2>
+      
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+         <h3>📋 Report Details</h3>
+         <p><strong>Report ID:</strong> ${reportData.id}</p>
+         <p><strong>Submitter:</strong> ${reportData.submitterName}</p>
+         <p><strong>Email:</strong> ${reportData.submitterEmail || 'Not provided'}</p>
+         <p><strong>Phone:</strong> ${reportData.submitterPhone || 'Not provided'}</p>
+         <p><strong>Submitted:</strong> ${new Date(reportData.createdAt).toLocaleString()}</p>
+      </div>
+
+      <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+         <h3>📍 Location Information</h3>
+         <p><strong>State:</strong> ${reportData.state}</p>
+         <p><strong>LGA:</strong> ${reportData.lga}</p>
+         <p><strong>Ward:</strong> ${reportData.ward || 'Not specified'}</p>
+         <p><strong>Address:</strong> ${reportData.specificAddress}</p>
+         ${reportData.coordinates ? `<p><strong>Coordinates:</strong> ${reportData.coordinates}</p>` : ''}
+      </div>
+
+      <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+         <h3>🚽 Facility Details</h3>
+         <p><strong>Condition:</strong> <span style="text-transform: capitalize; font-weight: bold; color: ${
+            reportData.toiletCondition === 'EXCELLENT'
+               ? '#28a745'
+               : reportData.toiletCondition === 'GOOD'
+                 ? '#6f42c1'
+                 : reportData.toiletCondition === 'FAIR'
+                   ? '#ffc107'
+                   : reportData.toiletCondition === 'POOR'
+                     ? '#fd7e14'
+                     : '#dc3545'
+         };">${reportData.toiletCondition?.toLowerCase().replace('_', ' ')}</span></p>
+         <p><strong>Facility Type:</strong> <span style="text-transform: capitalize;">${reportData.facilityType?.toLowerCase()}</span></p>
+         ${reportData.description ? `<p><strong>Description:</strong> ${reportData.description}</p>` : ''}
+      </div>
+
+      ${
+         reportData.images && reportData.images.length > 0
+            ? `
+         <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3>📷 Images (${reportData.images.length})</h3>
+            <p>Images have been uploaded and are available in the admin dashboard.</p>
+         </div>
+      `
+            : ''
+      }
+
+      <div style="text-align: center; margin: 30px 0;">
+         <a href="${process.env.FRONTEND_URL || process.env.ADMIN_DASHBOARD_URL || '#'}/admin/reports/${reportData.id}" 
+            style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+            📊 View Full Report
+         </a>
+      </div>
+
+      <p style="color: #666; font-size: 14px; margin-top: 30px;">
+         Please review this report in the admin dashboard and update its status as appropriate.
+      </p>
+   `,
+
    adminInvitation: (
       adminName: string,
       inviterName: string,
@@ -109,9 +183,28 @@ export const EmailTemplates = {
       <h2>You've been invited to join as an admin</h2>
       <p>Dear ${adminName},</p>
       <p>You have been invited by ${inviterName} to join the National Toilet Campaign admin panel as a <strong>${role}</strong>.</p>
-      <p>Click the link below to accept your invitation:</p>
-      <p><a href="${inviteLink}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Accept Invitation</a></p>
-      <p>This invitation will expire in 7 days.</p>
+      
+      <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+         <h3>🛡️ Your Role</h3>
+         <p><strong>${role}</strong></p>
+         ${
+            role === 'SYSTEM_ADMIN'
+               ? '<p>As a System Admin, you have full access to manage reports, users, and system settings.</p>'
+               : '<p>As an Admin, you can manage toilet reports and view analytics.</p>'
+         }
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+         <p>Click the button below to accept your invitation:</p>
+         <a href="${inviteLink}" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; font-size: 16px;">
+            🚀 Accept Invitation
+         </a>
+      </div>
+
+      <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin: 20px 0;">
+         <p><strong>⏰ Important:</strong> This invitation will expire in 7 days.</p>
+      </div>
+
       <p>If you didn't expect this invitation, you can safely ignore this email.</p>
    `,
 
@@ -121,11 +214,67 @@ export const EmailTemplates = {
       status: string,
       adminNotes?: string
    ) => `
-      <h2>Report Status Update</h2>
+      <h2>📋 Report Status Update</h2>
       <p>Dear ${submitterName},</p>
-      <p>Your toilet report (ID: ${reportId}) has been <strong>${status.toLowerCase()}</strong>.</p>
-      ${adminNotes ? `<p><strong>Admin Notes:</strong> ${adminNotes}</p>` : ''}
-      ${status === 'APPROVED' ? '<p>Your report is now visible on our public map and will help improve sanitation awareness.</p>' : ''}
+      <p>Your toilet report (ID: <strong>${reportId}</strong>) has been <strong style="text-transform: capitalize; color: ${
+         status === 'APPROVED'
+            ? '#28a745'
+            : status === 'REJECTED'
+              ? '#dc3545'
+              : '#6c757d'
+      };">${status.toLowerCase()}</strong>.</p>
+      
+      ${
+         adminNotes
+            ? `
+         <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3>💬 Admin Notes</h3>
+            <p>${adminNotes}</p>
+         </div>
+      `
+            : ''
+      }
+
+      ${
+         status === 'APPROVED'
+            ? `
+         <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3>✅ Report Approved</h3>
+            <p>Your report is now visible on our public map and will help improve sanitation awareness across Nigeria!</p>
+         </div>
+      `
+            : ''
+      }
+
+      ${
+         status === 'REJECTED'
+            ? `
+         <div style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3>❌ Report Not Approved</h3>
+            <p>Unfortunately, your report did not meet our guidelines. Please review the admin notes above for details.</p>
+         </div>
+      `
+            : ''
+      }
+
       <p>Thank you for your contribution to improving sanitation in Nigeria!</p>
+   `,
+
+   passwordReset: (adminName: string, resetLink: string) => `
+      <h2>🔐 Password Reset Request</h2>
+      <p>Dear ${adminName},</p>
+      <p>We received a request to reset your password for the National Toilet Campaign admin panel.</p>
+      
+      <div style="text-align: center; margin: 30px 0;">
+         <a href="${resetLink}" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+            🔑 Reset Password
+         </a>
+      </div>
+
+      <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin: 20px 0;">
+         <p><strong>⏰ Important:</strong> This link will expire in 1 hour for security reasons.</p>
+      </div>
+
+      <p>If you didn't request this password reset, you can safely ignore this email.</p>
    `,
 };

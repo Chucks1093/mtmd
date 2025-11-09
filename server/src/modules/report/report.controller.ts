@@ -16,7 +16,7 @@ import {
    getReportStatsRepository,
    getRecentReportsRepository,
 } from './report.utils';
-import { SendMail } from '../../utils/mail.util';
+import { SendMail, SendMailAsync } from '../../utils/mail.util';
 import { logger } from '../../utils/logger.utils';
 
 /**
@@ -36,7 +36,7 @@ export const createReport = async (
 
       // Send confirmation email if email provided
       if (newReport.submitterEmail) {
-         await SendMail({
+         SendMailAsync({
             to: newReport.submitterEmail,
             subject:
                'Toilet Report Submission Received - National Toilet Campaign',
