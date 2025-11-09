@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { envConfig } from '../config';
 
 // Project-specific email template (keeping your existing design)
 const generateProjectTemplate = (content: string, subject: string) => `
@@ -32,7 +33,7 @@ const generateProjectTemplate = (content: string, subject: string) => `
 `;
 
 // Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(envConfig.RESEND_API_KEY);
 
 export interface ISendMailOptions {
    to: string;
@@ -49,7 +50,7 @@ export const SendMail = async ({
    html,
    attachments,
 }: ISendMailOptions) => {
-   const { RESEND_API_KEY, RESEND_FROM_EMAIL } = process.env;
+   const { RESEND_API_KEY, RESEND_FROM_EMAIL } = envConfig;
 
    // Skip email in development if not configured
    if (!RESEND_API_KEY || !RESEND_FROM_EMAIL) {
@@ -163,7 +164,7 @@ export const EmailTemplates = {
       }
 
       <div style="text-align: center; margin: 30px 0;">
-         <a href="${process.env.FRONTEND_URL || process.env.ADMIN_DASHBOARD_URL || '#'}/admin/reports/${reportData.id}" 
+         <a href="${envConfig.FRONTEND_URL}/admin/dashboard/reports/${reportData.id}" 
             style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
             📊 View Full Report
          </a>

@@ -1,3 +1,4 @@
+import { envConfig } from './../../config';
 import { Request, Response, NextFunction } from 'express';
 import {
    inviteAdminSchema,
@@ -24,11 +25,7 @@ import { logger } from '../../utils/logger.utils';
 import { SendMail } from '../../utils/mail.util';
 
 // Google OAuth configuration
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
-const GOOGLE_REDIRECT_URI = `${BACKEND_URL}/api/v1/admin/auth/google/callback`;
+const GOOGLE_REDIRECT_URI = `${envConfig.BACKEND_URL}/api/v1/admin/auth/google/callback`;
 
 /**
  * Initiate Google OAuth login
@@ -39,10 +36,10 @@ export const initiateGoogleAuth = async (
    next: NextFunction
 ): Promise<void> => {
    try {
-      if (!GOOGLE_CLIENT_ID) {
+      if (!envConfig.GOOGLE_CLIENT_ID) {
          logger.error('Google Client ID not configured');
          res.redirect(
-            `${FRONTEND_URL}/admin/auth?success=false&message=OAuth not configured`
+            `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=OAuth not configured`
          );
          return;
       }
@@ -52,7 +49,7 @@ export const initiateGoogleAuth = async (
       // Store state in session or cache for validation (optional but recommended)
       const googleAuthUrl =
          `https://accounts.google.com/o/oauth2/v2/auth?` +
-         `client_id=${GOOGLE_CLIENT_ID}&` +
+         `client_id=${envConfig.GOOGLE_CLIENT_ID}&` +
          `redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&` +
          `response_type=code&` +
          `scope=openid email profile&` +
@@ -62,7 +59,7 @@ export const initiateGoogleAuth = async (
    } catch (error) {
       logger.error('Google OAuth initiation error:', error);
       res.redirect(
-         `${FRONTEND_URL}/admin/auth?success=false&message=Authentication failed`
+         `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=Authentication failed`
       );
    }
 };
@@ -78,17 +75,17 @@ export const googleAuthCallback = async (
    const { code, state } = req.query;
 
    try {
-      if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+      if (!envConfig.GOOGLE_CLIENT_ID || !envConfig.GOOGLE_CLIENT_SECRET) {
          logger.error('Google OAuth credentials not configured');
          res.redirect(
-            `${FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent('OAuth not configured')}`
+            `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent('OAuth not configured')}`
          );
          return;
       }
 
       if (!code || typeof code !== 'string') {
          res.redirect(
-            `${FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent('Authorization code missing')}`
+            `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent('Authorization code missing')}`
          );
          return;
       }
@@ -100,8 +97,8 @@ export const googleAuthCallback = async (
             'Content-Type': 'application/x-www-form-urlencoded',
          },
          body: new URLSearchParams({
-            client_id: GOOGLE_CLIENT_ID,
-            client_secret: GOOGLE_CLIENT_SECRET,
+            client_id: envConfig.GOOGLE_CLIENT_ID,
+            client_secret: envConfig.GOOGLE_CLIENT_SECRET,
             code: code,
             redirect_uri: GOOGLE_REDIRECT_URI,
             grant_type: 'authorization_code',
@@ -159,7 +156,7 @@ export const googleAuthCallback = async (
       if (!loginResult.success || !loginResult.admin) {
          const errorMessage = loginResult.message || 'Authentication failed';
          res.redirect(
-            `${FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent(errorMessage)}`
+            `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent(errorMessage)}`
          );
          return;
       }
@@ -181,14 +178,14 @@ export const googleAuthCallback = async (
       });
 
       res.redirect(
-         `${FRONTEND_URL}/admin/auth/callback?${queryParams.toString()}`
+         `${envConfig.FRONTEND_URL}/admin/auth/callback?${queryParams.toString()}`
       );
    } catch (error) {
       logger.error('Google OAuth callback error:', error);
       const errorMessage =
          error instanceof Error ? error.message : 'Authentication failed';
       res.redirect(
-         `${FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent(errorMessage)}`
+         `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent(errorMessage)}`
       );
    }
 };
@@ -202,7 +199,7 @@ export const setupFirstAdminWithOAuth = async (
    next: NextFunction
 ): Promise<void> => {
    try {
-      if (!GOOGLE_CLIENT_ID) {
+      if (!envConfig.GOOGLE_CLIENT_ID) {
          res.status(500).json({
             success: false,
             message: 'Google OAuth not configured',
@@ -226,7 +223,7 @@ export const setupFirstAdminWithOAuth = async (
 
       const googleAuthUrl =
          `https://accounts.google.com/o/oauth2/v2/auth?` +
-         `client_id=${GOOGLE_CLIENT_ID}&` +
+         `client_id=${envConfig.GOOGLE_CLIENT_ID}&` +
          `redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&` +
          `response_type=code&` +
          `scope=openid email profile&` +

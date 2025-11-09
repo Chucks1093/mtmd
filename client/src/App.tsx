@@ -4,6 +4,9 @@ import AdminLogin from './pages/Login';
 import { Toaster } from 'react-hot-toast';
 import OAuthCallback from './pages/OAuthCallback';
 import LandingPage from './pages/LandingPage';
+import DashboardLayout from './pages/DashboardLayout';
+import { adminLoader } from './helpers/admin.loader';
+import Reports from './pages/Reports';
 
 const router = createBrowserRouter([
 	{
@@ -11,15 +14,25 @@ const router = createBrowserRouter([
 		element: <LandingPage />,
 	},
 	{
-		path: '/admin',
+		path: '/admin/auth',
+		element: <AdminLogin />,
+	},
+	{
+		path: '/admin/auth/callback',
+		element: <OAuthCallback />,
+	},
+	{
+		path: '/admin/dashboard',
+		loader: adminLoader,
+		element: <DashboardLayout />,
 		children: [
 			{
-				path: '/admin/auth',
-				element: <AdminLogin />,
+				element: <Reports />,
+				index: true,
 			},
 			{
-				path: '/admin/auth/callback',
-				element: <OAuthCallback />,
+				path: '/admin/dashboard/reports',
+				element: <Reports />,
 			},
 		],
 	},
