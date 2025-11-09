@@ -114,6 +114,7 @@ class AuthService {
 	private API_URL: string;
 	private ACCESS_TOKEN: string = 'ntc_admin_token';
 	private ADMIN_PROFILE: string = 'ntc_admin_profile';
+	private INVITE_TOKEN: string = 'ntc_invite_token';
 
 	constructor() {
 		this.API_URL = import.meta.env.VITE_BACKEND_URL;
@@ -128,23 +129,53 @@ class AuthService {
 		}
 	}
 
-	// NEW: Initiate Google OAuth login (server-side flow)
-	loginWithGoogle(): void {
-		console.log('Redirecting to Google OAuth...', this.API_URL);
-		window.location.href = `${this.API_URL}/admin/auth/google`;
+	// Extract and store invite token from URL
+	extractAndStoreInviteToken(url: string): string | null {
+		const urlParams = new URLSearchParams(url.split('?')[1] || '');
+		const inviteToken =
+			urlParams.get('invite') || urlParams.get('inviteToken');
+
+		if (inviteToken) {
+			this.setInviteToken(inviteToken);
+			return inviteToken;
+		}
+
+		return this.getInviteToken();
 	}
 
-	// NEW: Handle OAuth callback response
+	// UPDATED: Initiate Google OAuth login with invite token support
+	loginWithGoogle(inviteToken?: string): void {
+		console.log('Redirecting to Google OAuth...', this.API_URL);
+
+		// Store invite token if provided
+		if (inviteToken) {
+			this.setInviteToken(inviteToken);
+		}
+
+		// Pass invite token to backend if present
+		const storedInviteToken = inviteToken || this.getInviteToken();
+		let oauthUrl = `${this.API_URL}/admin/auth/google`;
+
+		if (storedInviteToken) {
+			oauthUrl += `?invite=${encodeURIComponent(storedInviteToken)}`;
+		}
+
+		window.location.href = oauthUrl;
+	}
+
+	// SIMPLIFIED: Handle OAuth callback response (backend now handles invite acceptance)
 	handleOAuthCallback(params: URLSearchParams): {
 		success: boolean;
 		message: string;
 		admin?: AdminProfile;
+		isInviteFlow?: boolean;
 	} {
 		try {
 			const success = params.get('success') === 'true';
 			const message = params.get('message') || '';
 			const token = params.get('token');
 			const adminStr = params.get('admin');
+			const isInvite = params.get('isInvite') === 'true';
 
 			if (success && token && adminStr) {
 				const admin: AdminProfile = JSON.parse(adminStr);
@@ -153,20 +184,30 @@ class AuthService {
 				this.setToken(token);
 				this.setAdminProfile(admin);
 				this.setAuthHeader(token);
+				this.removeInviteToken(); // Clean up
 
 				return {
 					success: true,
-					message: message || 'Login successful',
+					message:
+						message ||
+						(isInvite
+							? 'Invitation accepted successfully!'
+							: 'Login successful'),
 					admin,
+					isInviteFlow: isInvite,
 				};
 			} else {
+				// Clean up invite token on failed auth
+				this.removeInviteToken();
 				return {
 					success: false,
 					message: message || 'Authentication failed',
+					isInviteFlow: isInvite,
 				};
 			}
 		} catch (error) {
 			console.error('Error handling OAuth callback:', error);
+			this.removeInviteToken();
 			return {
 				success: false,
 				message: 'Failed to process authentication response',
@@ -174,7 +215,7 @@ class AuthService {
 		}
 	}
 
-	// NEW: Setup first admin with OAuth
+	// Setup first admin with OAuth
 	async setupFirstAdminWithOAuth(
 		setupKey: string
 	): Promise<{ success: boolean; redirectUrl?: string; message: string }> {
@@ -199,7 +240,7 @@ class AuthService {
 		}
 	}
 
-	// Keep existing methods for backward compatibility
+	// Setup first admin (direct API call)
 	async setupFirstAdmin(
 		adminData: SetupFirstAdminData
 	): Promise<APIResponse<LoginResponse>> {
@@ -219,7 +260,7 @@ class AuthService {
 		}
 	}
 
-	// Keep existing Google login for backward compatibility
+	// Google login (direct API call with Google token)
 	async googleLogin(
 		googleData: GoogleLoginData
 	): Promise<APIResponse<LoginResponse>> {
@@ -239,7 +280,7 @@ class AuthService {
 		}
 	}
 
-	// Accept invitation
+	// Accept invitation (direct API call)
 	async acceptInvite(
 		inviteData: AcceptInviteData
 	): Promise<APIResponse<LoginResponse>> {
@@ -368,6 +409,19 @@ class AuthService {
 		Cookies.remove(this.ACCESS_TOKEN);
 	}
 
+	// Invite token management (temporary storage)
+	setInviteToken(token: string): void {
+		sessionStorage.setItem(this.INVITE_TOKEN, token);
+	}
+
+	getInviteToken(): string | null {
+		return sessionStorage.getItem(this.INVITE_TOKEN);
+	}
+
+	removeInviteToken(): void {
+		sessionStorage.removeItem(this.INVITE_TOKEN);
+	}
+
 	// Admin profile management
 	setAdminProfile(admin: AdminProfile): void {
 		localStorage.setItem(this.ADMIN_PROFILE, JSON.stringify(admin));
@@ -405,6 +459,7 @@ class AuthService {
 	clearAuth(): void {
 		this.removeToken();
 		this.removeAdminProfile();
+		this.removeInviteToken();
 		delete axios.defaults.headers.common['Authorization'];
 	}
 

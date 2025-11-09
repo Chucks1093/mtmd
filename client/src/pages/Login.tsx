@@ -6,22 +6,36 @@ import authService from '@/services/auth.service';
 const LoginPage: React.FC = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [inviteToken, setInviteToken] = useState<string | null>(null);
+	const [isInviteFlow, setIsInviteFlow] = useState(false);
 	const navigate = useNavigate();
 	const location = useLocation();
 
 	useEffect(() => {
-		// Check for error messages in URL params
-		const params = new URLSearchParams(location.search);
-		const success = params.get('success');
-		const message = params.get('message');
+		// Check for invite token in URL
+		const urlParams = new URLSearchParams(location.search);
+		const invite = urlParams.get('invite');
+
+		if (invite) {
+			console.log(invite);
+			setInviteToken(invite);
+			setIsInviteFlow(true);
+			// Store the invite token in the auth service
+			authService.extractAndStoreInviteToken(location.search);
+		}
+
+		// Check for error messages in URL params (from OAuth callback)
+		const success = urlParams.get('success');
+		const message = urlParams.get('message');
 
 		if (success === 'false' && message) {
 			setError(decodeURIComponent(message));
 		}
 
-		// Clear URL params after processing
+		// Clear URL params after processing but keep invite token if it exists
 		if (success || message) {
-			navigate('/admin/auth', { replace: true });
+			const newUrl = invite ? `/admin/auth?invite=${invite}` : '/admin/auth';
+			navigate(newUrl, { replace: true });
 		}
 	}, [location, navigate]);
 
@@ -29,12 +43,16 @@ const LoginPage: React.FC = () => {
 		try {
 			setLoading(true);
 			setError(null);
-			// This will redirect to your backend OAuth endpoint
-			authService.loginWithGoogle();
+			// Pass invite token if this is an invite flow
+			authService.loginWithGoogle(inviteToken || undefined);
 		} catch (error) {
 			setLoading(false);
 			console.log(error);
-			setError('Failed to initiate Google login');
+			setError(
+				isInviteFlow
+					? 'Failed to process invitation'
+					: 'Failed to initiate Google login'
+			);
 		}
 	};
 
@@ -43,20 +61,53 @@ const LoginPage: React.FC = () => {
 			<div className="max-w-md w-full space-y-8">
 				<div>
 					<h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-						Admin Login
+						{isInviteFlow ? 'Accept Admin Invitation' : 'Admin Login'}
 					</h2>
 					<p className="mt-2 text-center text-sm text-gray-600">
-						National Toilet Campaign Admin Panel
+						{isInviteFlow
+							? 'You have been invited to join the National Toilet Campaign admin team'
+							: 'National Toilet Campaign Admin Panel'}
 					</p>
 				</div>
 
 				<div className="mt-8 space-y-6">
+					{isInviteFlow && (
+						<div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+							<div className="flex">
+								<div className="flex-shrink-0">
+									<svg
+										className="h-5 w-5 text-blue-400"
+										fill="currentColor"
+										viewBox="0 0 20 20"
+									>
+										<path
+											fillRule="evenodd"
+											d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+											clipRule="evenodd"
+										/>
+									</svg>
+								</div>
+								<div className="ml-3">
+									<h3 className="text-sm font-medium text-blue-800">
+										Admin Invitation
+									</h3>
+									<div className="mt-2 text-sm text-blue-700">
+										You need to authenticate with your Google account
+										to accept this invitation and join the admin team.
+									</div>
+								</div>
+							</div>
+						</div>
+					)}
+
 					{error && (
 						<div className="bg-red-50 border border-red-200 rounded-md p-4">
 							<div className="flex">
 								<div className="ml-3">
 									<h3 className="text-sm font-medium text-red-800">
-										Authentication Error
+										{isInviteFlow
+											? 'Invitation Error'
+											: 'Authentication Error'}
 									</h3>
 									<div className="mt-2 text-sm text-red-700">
 										{error}
@@ -96,15 +147,21 @@ const LoginPage: React.FC = () => {
 									</svg>
 								)}
 							</span>
-							{loading ? 'Signing in...' : 'Continue with Google'}
+							{loading
+								? isInviteFlow
+									? 'Processing invitation...'
+									: 'Signing in...'
+								: isInviteFlow
+								? 'Continue with Google to Accept Invitation'
+								: 'Continue with Google'}
 						</button>
 					</div>
 
 					<div className="text-center">
 						<p className="mt-2 text-xs text-gray-500">
-							Only authorized administrators can access this panel.
-							<br />
-							Contact your system administrator for access.
+							{isInviteFlow
+								? 'By continuing, you accept the invitation to join as an administrator. You must use a Google account that the system administrator has authorized.'
+								: 'Only authorized administrators can access this panel. Contact your system administrator for access.'}
 						</p>
 					</div>
 				</div>

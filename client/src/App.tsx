@@ -9,6 +9,7 @@ import { adminLoader } from './helpers/admin.loader';
 import Reports from './pages/Reports';
 import ReportDetails from './pages/ReportDetails';
 import Admins from './pages/Admins';
+import AcceptInvite from './pages/AcceptInvite';
 
 const router = createBrowserRouter([
 	{
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
 	{
 		path: '/admin/auth/callback',
 		element: <OAuthCallback />,
+	},
+	{
+		path: '/admin/invite/:token',
+		element: <AcceptInvite />,
 	},
 	{
 		path: '/admin/dashboard',

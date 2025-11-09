@@ -7,6 +7,7 @@ import {
 	Eye,
 	XCircle,
 	CheckCircle,
+	Trash2,
 } from 'lucide-react';
 import {
 	DropdownMenu,
@@ -32,8 +33,6 @@ import { formatDate } from '@/utils/date.utils';
 import showToast from '@/utils/toast.util';
 import {
 	getReportStatusBadge,
-	getToiletConditionBadge,
-	getFacilityTypeBadge,
 	renderUserAvatar,
 } from '@/components/dashboard/StatusBadge';
 
@@ -287,7 +286,7 @@ const ReportsTable: React.FC = () => {
 						<button
 							onClick={() => handleApproveReport(report.id)}
 							disabled={isProcessing}
-							className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md w-full text-left transition-colors ${
+							className={`.flex hidden items-center gap-2 px-3 py-2 text-sm rounded-md w-full text-left transition-colors ${
 								isProcessing
 									? 'text-gray-400 cursor-not-allowed'
 									: 'text-gray-700 hover:bg-green-50'
@@ -321,7 +320,7 @@ const ReportsTable: React.FC = () => {
 							: 'text-gray-700 hover:bg-red-50'
 					}`}
 				>
-					<XCircle className="w-4 h-4" />
+					<Trash2 className="w-4 h-4" />
 					{isProcessing ? 'Deleting...' : 'Delete'}
 				</button>
 			</div>
@@ -464,10 +463,98 @@ const ReportsTable: React.FC = () => {
 							</DropdownMenuContent>
 						</DropdownMenu>
 
-						{/* Facility Type Filter */}
+						{/* Toilet Condition Filter */}
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<button className="lg:inline-flex hidden items-center px-4 py-2.5 text-sm font-medium text-center text-gray-700 bg-white border border-gray-300 rounded-sm hover:bg-gray-50 focus:ring-4 focus:outline-none focus:ring-gray-100">
+									<ListFilter className="w-4 h-4 mr-2 -ml-1 text-gray-500" />
+									{getToiletConditionFilterDisplayText()}
+									<ChevronDown className="w-4 h-4 ml-2 text-gray-500" />
+								</button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="start" className="w-48">
+								<DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase">
+									Toilet Condition
+								</DropdownMenuLabel>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
+									onClick={() =>
+										handleToiletConditionFilterChange('all')
+									}
+									className={`cursor-pointer ${
+										toiletConditionFilter === 'all'
+											? 'bg-gray-100 text-gray-900'
+											: 'text-gray-700'
+									}`}
+								>
+									All Conditions
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() =>
+										handleToiletConditionFilterChange('EXCELLENT')
+									}
+									className={`cursor-pointer ${
+										toiletConditionFilter === 'EXCELLENT'
+											? 'bg-gray-100 text-gray-900'
+											: 'text-gray-700'
+									}`}
+								>
+									Excellent
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() =>
+										handleToiletConditionFilterChange('GOOD')
+									}
+									className={`cursor-pointer ${
+										toiletConditionFilter === 'GOOD'
+											? 'bg-gray-100 text-gray-900'
+											: 'text-gray-700'
+									}`}
+								>
+									Good
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() =>
+										handleToiletConditionFilterChange('FAIR')
+									}
+									className={`cursor-pointer ${
+										toiletConditionFilter === 'FAIR'
+											? 'bg-gray-100 text-gray-900'
+											: 'text-gray-700'
+									}`}
+								>
+									Fair
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() =>
+										handleToiletConditionFilterChange('POOR')
+									}
+									className={`cursor-pointer ${
+										toiletConditionFilter === 'POOR'
+											? 'bg-gray-100 text-gray-900'
+											: 'text-gray-700'
+									}`}
+								>
+									Poor
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() =>
+										handleToiletConditionFilterChange('VERY_POOR')
+									}
+									className={`cursor-pointer ${
+										toiletConditionFilter === 'VERY_POOR'
+											? 'bg-gray-100 text-gray-900'
+											: 'text-gray-700'
+									}`}
+								>
+									Very Poor
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+						{/* Facility Type Filter */}
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<button className=".lg:inline-flex hidden items-center px-4 py-2.5 text-sm font-medium text-center text-gray-700 bg-white border border-gray-300 rounded-sm hover:bg-gray-50 focus:ring-4 focus:outline-none focus:ring-gray-100">
 									<ListFilter className="w-4 h-4 mr-2 -ml-1 text-gray-500" />
 									{getFacilityTypeFilterDisplayText()}
 									<ChevronDown className="w-4 h-4 ml-2 text-gray-500" />
@@ -586,95 +673,6 @@ const ReportsTable: React.FC = () => {
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
-
-						{/* Toilet Condition Filter */}
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<button className="lg:inline-flex hidden items-center px-4 py-2.5 text-sm font-medium text-center text-gray-700 bg-white border border-gray-300 rounded-sm hover:bg-gray-50 focus:ring-4 focus:outline-none focus:ring-gray-100">
-									<ListFilter className="w-4 h-4 mr-2 -ml-1 text-gray-500" />
-									{getToiletConditionFilterDisplayText()}
-									<ChevronDown className="w-4 h-4 ml-2 text-gray-500" />
-								</button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="start" className="w-48">
-								<DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase">
-									Toilet Condition
-								</DropdownMenuLabel>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									onClick={() =>
-										handleToiletConditionFilterChange('all')
-									}
-									className={`cursor-pointer ${
-										toiletConditionFilter === 'all'
-											? 'bg-gray-100 text-gray-900'
-											: 'text-gray-700'
-									}`}
-								>
-									All Conditions
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={() =>
-										handleToiletConditionFilterChange('EXCELLENT')
-									}
-									className={`cursor-pointer ${
-										toiletConditionFilter === 'EXCELLENT'
-											? 'bg-gray-100 text-gray-900'
-											: 'text-gray-700'
-									}`}
-								>
-									Excellent
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={() =>
-										handleToiletConditionFilterChange('GOOD')
-									}
-									className={`cursor-pointer ${
-										toiletConditionFilter === 'GOOD'
-											? 'bg-gray-100 text-gray-900'
-											: 'text-gray-700'
-									}`}
-								>
-									Good
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={() =>
-										handleToiletConditionFilterChange('FAIR')
-									}
-									className={`cursor-pointer ${
-										toiletConditionFilter === 'FAIR'
-											? 'bg-gray-100 text-gray-900'
-											: 'text-gray-700'
-									}`}
-								>
-									Fair
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={() =>
-										handleToiletConditionFilterChange('POOR')
-									}
-									className={`cursor-pointer ${
-										toiletConditionFilter === 'POOR'
-											? 'bg-gray-100 text-gray-900'
-											: 'text-gray-700'
-									}`}
-								>
-									Poor
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={() =>
-										handleToiletConditionFilterChange('VERY_POOR')
-									}
-									className={`cursor-pointer ${
-										toiletConditionFilter === 'VERY_POOR'
-											? 'bg-gray-100 text-gray-900'
-											: 'text-gray-700'
-									}`}
-								>
-									Very Poor
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
 					</div>
 				</div>
 			</div>
@@ -697,21 +695,19 @@ const ReportsTable: React.FC = () => {
 									scope="col"
 									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 								>
-									<div className="flex items-center">Location</div>
+									<div className="flex items-center">State</div>
+								</th>
+								<th
+									scope="col"
+									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+								>
+									<div className="flex items-center">Lga</div>
 								</th>
 								<th
 									scope="col"
 									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 								>
 									<div className="flex items-center">Condition</div>
-								</th>
-								<th
-									scope="col"
-									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-								>
-									<div className="flex items-center">
-										Facility Type
-									</div>
 								</th>
 								<th
 									scope="col"
@@ -762,11 +758,6 @@ const ReportsTable: React.FC = () => {
 													>
 														{report.submitterName}
 													</div>
-													{report.submitterEmail && (
-														<div className="text-sm text-gray-500">
-															{report.submitterEmail}
-														</div>
-													)}
 												</div>
 											</div>
 										</td>
@@ -782,27 +773,36 @@ const ReportsTable: React.FC = () => {
 												<div className="font-medium">
 													{report.state}
 												</div>
-												<div className="text-gray-500">
-													{report.lga}
-												</div>
+											</div>
+										</td>
+
+										<td className="px-6 py-4 whitespace-nowrap text-sm">
+											<div
+												className={
+													isProcessing
+														? 'opacity-50 text-gray-400'
+														: 'text-gray-500'
+												}
+											>
+												{report.lga}
 											</div>
 										</td>
 
 										<td className="px-6 py-4 whitespace-nowrap">
 											<div
-												className={isProcessing ? 'opacity-50' : ''}
+												className={`size-8 text-sm rounded-full bg-zinc-100 border flex items-center justify-center ${
+													isProcessing ? 'animate-pulse' : ''
+												}`}
 											>
-												{getToiletConditionBadge(
-													report.toiletCondition
-												)}
-											</div>
-										</td>
-
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div
-												className={isProcessing ? 'opacity-50' : ''}
-											>
-												{getFacilityTypeBadge(report.facilityType)}
+												<p
+													className={` font-medium ${
+														isProcessing
+															? 'text-gray-400'
+															: 'text-zinc-600'
+													}`}
+												>
+													{report.toiletCondition.slice(0, 2)}
+												</p>
 											</div>
 										</td>
 

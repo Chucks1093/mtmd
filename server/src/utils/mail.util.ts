@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { envConfig } from '../config';
+import nodemailer from 'nodemailer';
 
 // Project-specific email template (keeping your existing design)
 const generateProjectTemplate = (content: string, subject: string) => `
@@ -50,33 +51,42 @@ export const SendMail = async ({
    html,
    attachments,
 }: ISendMailOptions) => {
-   const { RESEND_API_KEY, RESEND_FROM_EMAIL } = envConfig;
+   const { GMAIL_USER, GMAIL_APP_PASSWORD } = process.env;
 
-   // Skip email in development if not configured
-   if (!RESEND_API_KEY || !RESEND_FROM_EMAIL) {
-      console.log('📧 Email skipped (Resend not configured):', { to, subject });
+   if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
+      console.log('📧 Email skipped (Gmail not configured):', { to, subject });
       return true;
    }
 
    try {
-      const result = await resend.emails.send({
-         from: `National Toilet Campaign <${RESEND_FROM_EMAIL}>`,
-         to: [to],
-         subject,
-         html: html || generateProjectTemplate(text || '', subject),
-         text,
-         ...(attachments && attachments.length > 0 && { attachments }),
+      // Create transporter with Gmail SMTP
+      const transporter = nodemailer.createTransport({
+         service: 'gmail',
+         auth: {
+            user: GMAIL_USER,
+            pass: GMAIL_APP_PASSWORD, // Use App Password, not regular password
+         },
       });
 
+      const mailOptions = {
+         from: `National Toilet Campaign <${GMAIL_USER}>`,
+         to,
+         subject,
+         text,
+         html: html || generateProjectTemplate(text || '', subject),
+         attachments,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
       console.log(
-         '✅ Email sent successfully via Resend to:',
+         '✅ Email sent successfully via Gmail to:',
          to,
          'ID:',
-         result.data
+         info.messageId
       );
       return true;
    } catch (error) {
-      console.error('❌ Failed to send email via Resend:', error);
+      console.error('❌ Failed to send email via Gmail:', error);
       return false;
    }
 };

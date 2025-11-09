@@ -228,7 +228,7 @@ class AuthService {
     */
    generateInviteUrl(inviteToken: string): string {
       const baseUrl = envConfig.FRONTEND_URL;
-      return `${baseUrl}/admin/accept-invite?token=${inviteToken}`;
+      return `${baseUrl}/admin/auth?invite=${inviteToken}`;
    }
 
    /**

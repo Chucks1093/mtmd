@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import tspecOptions from './tspec.config';
 import { envConfig } from './config';
+import { SendMail } from './utils/mail.util';
 
 const app: Express = express();
 
@@ -37,6 +38,24 @@ async function setupTspecDocs() {
 
 setupTspecDocs().catch(console.error);
 
+// Quick test endpoint
+app.get('/test-email', async (req, res) => {
+   try {
+      const result = await SendMail({
+         to: 'aniokesebastian@gmail.com',
+         subject: 'Test Email',
+         html: '<h1>Test</h1><p>If you get this, it works!</p>',
+      });
+
+      res.json({
+         success: result,
+         message: result ? 'Check your email' : 'Email failed',
+      });
+   } catch (error) {
+      res.json({ error: error });
+   }
+});
+
 // Redirect root
 app.get('/', (req: Request, res: Response) => {
    res.redirect('/api-docs');
@@ -45,10 +64,10 @@ app.get('/', (req: Request, res: Response) => {
 // Routes
 app.use('/api/v1', router);
 
-// 404 handler - MUST come after all routes
-app.use(notFoundHandler);
+// // 404 handler - MUST come after all routes
+// app.use(notFoundHandler);
 
-// Error handler - MUST be last
-app.use(errorHandler);
+// // Error handler - MUST be last
+// app.use(errorHandler);
 
 export default app;

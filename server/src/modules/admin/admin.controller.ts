@@ -28,7 +28,7 @@ import { SendMail } from '../../utils/mail.util';
 const GOOGLE_REDIRECT_URI = `${envConfig.BACKEND_URL}/api/v1/admin/auth/google/callback`;
 
 /**
- * Initiate Google OAuth login
+ * Initiate Google OAuth login - UPDATED to handle invite tokens
  */
 export const initiateGoogleAuth = async (
    req: Request,
@@ -44,9 +44,14 @@ export const initiateGoogleAuth = async (
          return;
       }
 
-      const state = Math.random().toString(36).substring(2, 15);
+      // Check for invite token in query params
+      const inviteToken = req.query.invite as string;
 
-      // Store state in session or cache for validation (optional but recommended)
+      // Generate state - include invite token if present
+      const state = inviteToken
+         ? `invite_${inviteToken}_${Math.random().toString(36).substring(2, 15)}`
+         : Math.random().toString(36).substring(2, 15);
+
       const googleAuthUrl =
          `https://accounts.google.com/o/oauth2/v2/auth?` +
          `client_id=${envConfig.GOOGLE_CLIENT_ID}&` +
@@ -65,7 +70,7 @@ export const initiateGoogleAuth = async (
 };
 
 /**
- * Handle Google OAuth callback
+ * Handle Google OAuth callback - UPDATED to handle invite flows
  */
 export const googleAuthCallback = async (
    req: Request,
@@ -90,6 +95,18 @@ export const googleAuthCallback = async (
          return;
       }
 
+      // Extract invite token from state if present
+      let inviteToken: string | null = null;
+      let isInviteFlow = false;
+
+      if (state && typeof state === 'string' && state.startsWith('invite_')) {
+         const parts = state.split('_');
+         if (parts.length >= 2) {
+            inviteToken = parts[1];
+            isInviteFlow = true;
+         }
+      }
+
       // Exchange authorization code for access token
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
          method: 'POST',
@@ -110,7 +127,7 @@ export const googleAuthCallback = async (
       }
 
       const tokens = await tokenResponse.json();
-      const { access_token, id_token } = tokens;
+      const { access_token } = tokens;
 
       if (!access_token) {
          throw new Error('No access token received from Google');
@@ -132,12 +149,10 @@ export const googleAuthCallback = async (
 
       const profile = await profileResponse.json();
 
-      // Validate required profile fields
       if (!profile.id || !profile.email) {
          throw new Error('Incomplete profile data from Google');
       }
 
-      // Create GoogleCredentials object similar to your existing verifyGoogleToken function
       const googleCredentials = {
          googleId: profile.id,
          email: profile.email,
@@ -146,40 +161,120 @@ export const googleAuthCallback = async (
          emailVerified: profile.verified_email,
       };
 
-      // Authenticate using your existing service
-      const loginResult = await AuthService.authenticateWithGoogle(
-         googleCredentials,
-         req.headers['user-agent'],
-         req.ip
-      );
+      // Handle different flows
+      if (isInviteFlow && inviteToken) {
+         // INVITE FLOW: Accept invitation
+         try {
+            const pendingAdmin =
+               await getAdminByInviteTokenRepository(inviteToken);
 
-      if (!loginResult.success || !loginResult.admin) {
-         const errorMessage = loginResult.message || 'Authentication failed';
-         res.redirect(
-            `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent(errorMessage)}`
+            if (!pendingAdmin) {
+               res.redirect(
+                  `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent('Invalid or expired invitation token')}&isInvite=true`
+               );
+               return;
+            }
+
+            // Check if this Google account is already used
+            const existingAdmin = await getAdminByGoogleIdRepository(
+               googleCredentials.googleId
+            );
+            if (existingAdmin) {
+               res.redirect(
+                  `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent('This Google account is already associated with another admin')}&isInvite=true`
+               );
+               return;
+            }
+
+            // Activate the admin with Google credentials
+            await activateAdminRepository(inviteToken, {
+               googleId: googleCredentials.googleId,
+               email: pendingAdmin.email,
+               name: pendingAdmin.name,
+               profilePicture: googleCredentials.profilePicture,
+            });
+
+            // Create session for the newly activated admin
+            const loginResult = await AuthService.authenticateWithGoogle(
+               googleCredentials,
+               req.headers['user-agent'],
+               req.ip
+            );
+
+            if (!loginResult.success || !loginResult.admin) {
+               res.redirect(
+                  `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent('Failed to create session after accepting invitation')}&isInvite=true`
+               );
+               return;
+            }
+
+            const adminData = {
+               id: loginResult.admin.id,
+               email: loginResult.admin.email,
+               name: loginResult.admin.name,
+               role: loginResult.admin.role,
+               profilePicture: loginResult.admin.profilePicture || '',
+            };
+
+            const queryParams = new URLSearchParams({
+               success: 'true',
+               message: 'Invitation accepted successfully',
+               token: loginResult.token || '',
+               admin: JSON.stringify(adminData),
+               isInvite: 'true', // Flag to indicate this was an invite flow
+            });
+
+            res.redirect(
+               `${envConfig.FRONTEND_URL}/admin/auth/callback?${queryParams.toString()}`
+            );
+            return;
+         } catch (error) {
+            logger.error('Invite acceptance error:', error);
+            const errorMessage =
+               error instanceof Error
+                  ? error.message
+                  : 'Failed to accept invitation';
+            res.redirect(
+               `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent(errorMessage)}&isInvite=true`
+            );
+            return;
+         }
+      } else {
+         // NORMAL LOGIN FLOW: Authenticate existing admin
+         const loginResult = await AuthService.authenticateWithGoogle(
+            googleCredentials,
+            req.headers['user-agent'],
+            req.ip
          );
-         return;
+
+         if (!loginResult.success || !loginResult.admin) {
+            const errorMessage = loginResult.message || 'Authentication failed';
+            res.redirect(
+               `${envConfig.FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent(errorMessage)}`
+            );
+            return;
+         }
+
+         const adminData = {
+            id: loginResult.admin.id,
+            email: loginResult.admin.email,
+            name: loginResult.admin.name,
+            role: loginResult.admin.role,
+            profilePicture: loginResult.admin.profilePicture || '',
+         };
+
+         const queryParams = new URLSearchParams({
+            success: 'true',
+            message: 'Login successful',
+            token: loginResult.token || '',
+            admin: JSON.stringify(adminData),
+            isInvite: 'false',
+         });
+
+         res.redirect(
+            `${envConfig.FRONTEND_URL}/admin/auth/callback?${queryParams.toString()}`
+         );
       }
-
-      // Now TypeScript knows loginResult.admin is defined
-      const adminData = {
-         id: loginResult.admin.id,
-         email: loginResult.admin.email,
-         name: loginResult.admin.name,
-         role: loginResult.admin.role,
-         profilePicture: loginResult.admin.profilePicture || '',
-      };
-
-      const queryParams = new URLSearchParams({
-         success: 'true',
-         message: 'Login successful',
-         token: loginResult.token || '',
-         admin: JSON.stringify(adminData),
-      });
-
-      res.redirect(
-         `${envConfig.FRONTEND_URL}/admin/auth/callback?${queryParams.toString()}`
-      );
    } catch (error) {
       logger.error('Google OAuth callback error:', error);
       const errorMessage =
@@ -190,9 +285,66 @@ export const googleAuthCallback = async (
    }
 };
 
-/**
- * Setup first system admin (using OAuth flow)
- */
+// Update your inviteAdmin function to generate the correct invite URL
+export const inviteAdmin = async (
+   req: Request,
+   res: Response,
+   next: NextFunction
+): Promise<void> => {
+   try {
+      const validatedData = inviteAdminSchema.parse(req.body);
+      const invitedBy = req.admin!.id;
+
+      if (
+         req.admin!.role !== 'SYSTEM_ADMIN' &&
+         validatedData.role === 'SYSTEM_ADMIN'
+      ) {
+         res.status(403).json({
+            success: false,
+            message: 'Only system admins can invite other system admins',
+         });
+         return;
+      }
+
+      const newAdmin = await inviteAdminRepository(validatedData, invitedBy);
+
+      // Generate invite URL that points to your auth page with invite token
+      const inviteLink = `${envConfig.FRONTEND_URL}/admin/auth?invite=${newAdmin.inviteToken}`;
+
+      console.log('SENDING INVITE', newAdmin, inviteLink);
+
+      await SendMail({
+         to: newAdmin.email,
+         subject: 'Admin Invitation - National Toilet Campaign',
+         html: `
+        <h2>You've been invited to join as an admin</h2>
+        <p>Dear ${newAdmin.name},</p>
+        <p>You have been invited by ${req.admin!.name} to join the National Toilet Campaign admin panel as a <strong>${newAdmin.role}</strong>.</p>
+        <p>Click the link below to accept your invitation:</p>
+        <p><a href="${inviteLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Accept Invitation</a></p>
+        <p>This invitation will expire in 7 days.</p>
+        <p>If you didn't expect this invitation, you can safely ignore this email.</p>
+      `,
+      });
+
+      res.status(201).json({
+         success: true,
+         message: 'Admin invitation sent successfully',
+         data: {
+            id: newAdmin.id,
+            email: newAdmin.email,
+            name: newAdmin.name,
+            role: newAdmin.role,
+            status: newAdmin.status,
+            inviteUrl: inviteLink,
+         },
+      });
+   } catch (error) {
+      next(error);
+   }
+};
+
+// Keep all your other existing functions unchanged...
 export const setupFirstAdminWithOAuth = async (
    req: Request,
    res: Response,
@@ -218,7 +370,6 @@ export const setupFirstAdminWithOAuth = async (
          return;
       }
 
-      // Store setup key in session/cache and redirect to OAuth
       const state = `setup_${Math.random().toString(36).substring(2, 15)}`;
 
       const googleAuthUrl =
@@ -239,7 +390,7 @@ export const setupFirstAdminWithOAuth = async (
    }
 };
 
-// Keep all your existing functions unchanged
+// ... (keep all your other existing functions unchanged)
 export const setupFirstAdmin = async (
    req: Request,
    res: Response,
@@ -296,60 +447,7 @@ export const setupFirstAdmin = async (
    }
 };
 
-export const inviteAdmin = async (
-   req: Request,
-   res: Response,
-   next: NextFunction
-): Promise<void> => {
-   try {
-      const validatedData = inviteAdminSchema.parse(req.body);
-      const invitedBy = req.admin!.id;
-
-      if (
-         req.admin!.role !== 'SYSTEM_ADMIN' &&
-         validatedData.role === 'SYSTEM_ADMIN'
-      ) {
-         res.status(403).json({
-            success: false,
-            message: 'Only system admins can invite other system admins',
-         });
-         return;
-      }
-
-      const newAdmin = await inviteAdminRepository(validatedData, invitedBy);
-      const inviteLink = AuthService.generateInviteUrl(newAdmin.inviteToken!);
-
-      SendMail({
-         to: newAdmin.email,
-         subject: 'Admin Invitation - National Toilet Campaign',
-         html: `
-        <h2>You've been invited to join as an admin</h2>
-        <p>Dear ${newAdmin.name},</p>
-        <p>You have been invited by ${req.admin!.name} to join the National Toilet Campaign admin panel as a <strong>${newAdmin.role}</strong>.</p>
-        <p>Click the link below to accept your invitation:</p>
-        <p><a href="${inviteLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Accept Invitation</a></p>
-        <p>This invitation will expire in 7 days.</p>
-        <p>If you didn't expect this invitation, you can safely ignore this email.</p>
-      `,
-      });
-
-      res.status(201).json({
-         success: true,
-         message: 'Admin invitation sent successfully',
-         data: {
-            id: newAdmin.id,
-            email: newAdmin.email,
-            name: newAdmin.name,
-            role: newAdmin.role,
-            status: newAdmin.status,
-            inviteUrl: inviteLink,
-         },
-      });
-   } catch (error) {
-      next(error);
-   }
-};
-
+// Keep acceptInvite for direct API calls (optional)
 export const acceptInvite = async (
    req: Request,
    res: Response,

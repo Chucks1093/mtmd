@@ -14,6 +14,7 @@ import {
 	User,
 	UserX,
 	AlertTriangle,
+	CheckCheck,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -74,7 +75,7 @@ export const getReportStatusBadge = (status: ReportStatusType) => {
 		case 'PENDING':
 			return (
 				<span
-					className={`${base} bg-orange-50 text-orange-700 border-orange-400`}
+					className={`${base} bg-yellow-50 text-yellow-700 border-yellow-400`}
 				>
 					<Clock className="size-4 mr-1" />
 					Pending Review
@@ -85,7 +86,7 @@ export const getReportStatusBadge = (status: ReportStatusType) => {
 				<span
 					className={`${base} bg-green-50 text-green-700 border-green-400`}
 				>
-					<CheckCircle className="size-4 mr-1" />
+					<CheckCheck className="size-4 mr-1" />
 					Approved
 				</span>
 			);

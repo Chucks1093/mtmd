@@ -168,7 +168,7 @@ const InviteAdminModal: React.FC<InviteAdminModalProps> = ({
 				</DialogHeader>
 
 				{/* Scrollable Content */}
-				<ScrollArea className="h-[52vh]">
+				<ScrollArea className="h-[52vh] max-h-[30rem]">
 					<div className="p-6 space-y-6 h-full flex flex-col">
 						{/* Email Input */}
 						<FormInput

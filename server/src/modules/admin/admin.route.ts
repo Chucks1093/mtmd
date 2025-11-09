@@ -38,10 +38,10 @@ adminRouter.post('/logout', authenticateAdmin, logout);
 // Profile and stats
 adminRouter.get('/profile', authenticateAdmin, getProfile);
 adminRouter.get('/stats', authenticateAdmin, getAdminStats);
+adminRouter.get('/', authenticateAdmin, getAllAdmins);
 
 // Admin management (System Admin only)
 adminRouter.post('/invite', requireSystemAdmin, inviteAdmin);
-adminRouter.get('/', requireSystemAdmin, getAllAdmins);
 adminRouter.patch('/:id', requireSystemAdmin, updateAdmin);
 adminRouter.delete('/:id', requireSystemAdmin, deleteAdmin);
 

@@ -6,13 +6,13 @@ export async function adminLoader() {
 	try {
 		const userProfile = await authService.getProfile();
 		if (!userProfile) {
-			return redirect('/auth/login');
+			return redirect('/admin/auth');
 		}
 
 		return userProfile.data;
 	} catch (error) {
 		console.error('Auth check failed:', error);
 		showToast.error('An authentication error occurred');
-		return redirect('/auth/login');
+		return redirect('/admin/auth');
 	}
 }

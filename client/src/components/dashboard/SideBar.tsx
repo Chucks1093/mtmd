@@ -6,6 +6,7 @@ import {
 	ClipboardList,
 	Handshake,
 	Coins,
+	UserCog,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NavLink, useNavigate } from 'react-router';
@@ -43,7 +44,7 @@ const navigationData: NavigationSection[] = [
 				link: '/admin/dashboard/reports',
 			},
 			{
-				icon: ClipboardList, // ← Changed from Landmark - better for reports
+				icon: UserCog,
 				label: 'Admins',
 				id: 'admins',
 				link: '/admin/dashboard/admins',
@@ -157,7 +158,7 @@ const SideBar: React.FC<SideBarProps> = ({ className, onNavigate }) => {
 		showToast.loading('Logging out...');
 		await authService.logout();
 		clearProfile();
-		navigate('/auth/login');
+		navigate('/admin/auth');
 		showToast.success('Logged Out');
 	};
 
