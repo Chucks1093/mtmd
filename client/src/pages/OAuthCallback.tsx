@@ -31,7 +31,7 @@ const OAuthCallback: React.FC = () => {
 
 					// Redirect back to login after error
 					setTimeout(() => {
-						navigate('/login', { replace: true });
+						navigate('/admin/auth', { replace: true });
 					}, 3000);
 				}
 			} catch (error) {
@@ -40,7 +40,7 @@ const OAuthCallback: React.FC = () => {
 				setMessage('Failed to process authentication response');
 
 				setTimeout(() => {
-					navigate('/login', { replace: true });
+					navigate('/admin/auth', { replace: true });
 				}, 3000);
 			}
 		};

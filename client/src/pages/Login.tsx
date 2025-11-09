@@ -21,7 +21,7 @@ const LoginPage: React.FC = () => {
 
 		// Clear URL params after processing
 		if (success || message) {
-			navigate('/login', { replace: true });
+			navigate('/admin/auth', { replace: true });
 		}
 	}, [location, navigate]);
 

@@ -42,7 +42,7 @@ export const initiateGoogleAuth = async (
       if (!GOOGLE_CLIENT_ID) {
          logger.error('Google Client ID not configured');
          res.redirect(
-            `${FRONTEND_URL}/login?success=false&message=OAuth not configured`
+            `${FRONTEND_URL}/admin/auth?success=false&message=OAuth not configured`
          );
          return;
       }
@@ -62,7 +62,7 @@ export const initiateGoogleAuth = async (
    } catch (error) {
       logger.error('Google OAuth initiation error:', error);
       res.redirect(
-         `${FRONTEND_URL}/login?success=false&message=Authentication failed`
+         `${FRONTEND_URL}/admin/auth?success=false&message=Authentication failed`
       );
    }
 };
@@ -81,14 +81,14 @@ export const googleAuthCallback = async (
       if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
          logger.error('Google OAuth credentials not configured');
          res.redirect(
-            `${FRONTEND_URL}/login?success=false&message=${encodeURIComponent('OAuth not configured')}`
+            `${FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent('OAuth not configured')}`
          );
          return;
       }
 
       if (!code || typeof code !== 'string') {
          res.redirect(
-            `${FRONTEND_URL}/login?success=false&message=${encodeURIComponent('Authorization code missing')}`
+            `${FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent('Authorization code missing')}`
          );
          return;
       }
@@ -159,7 +159,7 @@ export const googleAuthCallback = async (
       if (!loginResult.success || !loginResult.admin) {
          const errorMessage = loginResult.message || 'Authentication failed';
          res.redirect(
-            `${FRONTEND_URL}/login?success=false&message=${encodeURIComponent(errorMessage)}`
+            `${FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent(errorMessage)}`
          );
          return;
       }
@@ -188,7 +188,7 @@ export const googleAuthCallback = async (
       const errorMessage =
          error instanceof Error ? error.message : 'Authentication failed';
       res.redirect(
-         `${FRONTEND_URL}/login?success=false&message=${encodeURIComponent(errorMessage)}`
+         `${FRONTEND_URL}/admin/auth?success=false&message=${encodeURIComponent(errorMessage)}`
       );
    }
 };

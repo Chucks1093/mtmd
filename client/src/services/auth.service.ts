@@ -119,7 +119,7 @@ class AuthService {
 		this.API_URL = import.meta.env.VITE_BACKEND_URL;
 
 		// Setup axios defaults
-		axios.defaults.baseURL = `${this.API_URL}/api/v1`;
+		axios.defaults.baseURL = `${this.API_URL}`;
 
 		// Add token to all requests if available
 		const token = this.getToken();
@@ -131,7 +131,7 @@ class AuthService {
 	// NEW: Initiate Google OAuth login (server-side flow)
 	loginWithGoogle(): void {
 		console.log('Redirecting to Google OAuth...', this.API_URL);
-		window.location.href = `${this.API_URL}/api/v1/admin/auth/google`;
+		window.location.href = `${this.API_URL}/admin/auth/google`;
 	}
 
 	// NEW: Handle OAuth callback response

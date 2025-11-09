@@ -20,7 +20,7 @@ const tspecOptions: Tspec.GenerateParams = {
             description: 'Development server',
          },
          {
-            url: 'https://api.toiletcampaign.ng',
+            url: 'https://nodejs-production-859c.up.railway.app',
             description: 'Production server',
          },
       ],
