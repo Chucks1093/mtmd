@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Textarea } from './ui/textarea';
+import { Textarea } from '../ui/textarea';
 
 interface FormInputProps {
 	label: string;
@@ -102,7 +102,7 @@ export const FormInput: React.FC<FormInputProps> = ({
 	const baseInputStyles = `
 		w-full px-4 py-2 border-none rounded-md transition-colors duration-200 outline-none
 		focus:ring-0 focus:ring-blue-500  h-14
-		placeholder:text-red-400 
+		placeholder:text-gray-400 
 		disabled:bg-gray-100 disabled:cursor-not-allowed bg-white  selection:bg-blue-500 selection:text-white 
 		${
 			hasError

@@ -121,7 +121,7 @@ const SearchableSelect: React.FC<{
 			>
 				<Command
 					className={cn(
-						'w-full command-input:border command-input:rounded-md command-input:w-full command-input:border-none'
+						'w-full command-input:border command-input:rounded-md command-input:w-full command-input:border-none '
 					)}
 				>
 					<div

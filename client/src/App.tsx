@@ -2,12 +2,13 @@ import './app.css';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import AdminLogin from './pages/Login';
 import { Toaster } from 'react-hot-toast';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import OAuthCallback from './pages/OAuthCallback';
+import LandingPage from './pages/LandingPage';
+
 const router = createBrowserRouter([
 	{
 		path: '/',
-		element: <div>My App</div>,
+		element: <LandingPage />,
 	},
 	{
 		path: '/admin',
@@ -26,10 +27,10 @@ const router = createBrowserRouter([
 
 function App() {
 	return (
-		<GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+		<>
 			<Toaster />
 			<RouterProvider router={router} />
-		</GoogleOAuthProvider>
+		</>
 	);
 }
 
