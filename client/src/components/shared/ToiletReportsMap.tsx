@@ -62,9 +62,9 @@ const COLOR_SCHEMES = {
 	},
 	green: {
 		light: '#E8F5E8',
-		medium: '#66BB6A',
+		medium: '#7AC87EFF',
 		dark: '#388E3C',
-		darkest: '#1B5E20',
+		darkest: '#387C3CFF',
 	},
 	orange: {
 		light: '#FFF3E0',
@@ -335,7 +335,7 @@ const ToiletReportsMap: React.FC<ToiletReportsMapProps> = ({
 												default: { outline: 'none' },
 												hover: {
 													outline: 'none',
-													fill: COLOR_SCHEMES[colorScheme].dark,
+													fill: COLOR_SCHEMES[colorScheme].medium,
 													cursor: onStateClick
 														? 'pointer'
 														: 'default',
