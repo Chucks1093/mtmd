@@ -20,7 +20,7 @@ import {
    generateExcel,
    generatePDF,
 } from './report.utils';
-import { SendMail, SendMailAsync } from '../../utils/mail.util';
+import { SendMail, SendMailAsync } from '../../utils/mail.utils';
 import { logger } from '../../utils/logger.utils';
 
 /**

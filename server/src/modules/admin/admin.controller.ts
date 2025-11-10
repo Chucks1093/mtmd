@@ -22,7 +22,7 @@ import {
 } from './admin.utils';
 import AuthService from '../../services/auth.service';
 import { logger } from '../../utils/logger.utils';
-import { SendMail } from '../../utils/mail.util';
+import { SendMail } from '../../utils/mail.utils';
 
 // Google OAuth configuration
 const GOOGLE_REDIRECT_URI = `${envConfig.BACKEND_URL}/api/v1/admin/auth/google/callback`;

@@ -1,8 +1,6 @@
-import { Resend } from 'resend';
-import { envConfig } from '../config';
 import nodemailer from 'nodemailer';
+import { envConfig } from '../config';
 
-// Project-specific email template (keeping your existing design)
 const generateProjectTemplate = (content: string, subject: string) => `
 <!DOCTYPE html>
 <html>
@@ -33,15 +31,12 @@ const generateProjectTemplate = (content: string, subject: string) => `
 </html>
 `;
 
-// Initialize Resend
-const resend = new Resend(envConfig.RESEND_API_KEY);
-
 export interface ISendMailOptions {
    to: string;
    subject: string;
    text?: string;
    html?: string;
-   attachments?: any[]; // Resend uses different attachment format
+   attachments?: any[];
 }
 
 export const SendMail = async ({
@@ -91,7 +86,7 @@ export const SendMail = async ({
    }
 };
 
-// Async version that doesn't block API responses
+// Async version
 export const SendMailAsync = async ({
    to,
    subject,
@@ -99,14 +94,9 @@ export const SendMailAsync = async ({
    html,
    attachments,
 }: ISendMailOptions) => {
-   // Fire and forget - don't wait for response
    SendMail({ to, subject, text, html, attachments })
-      .then(() => {
-         console.log('📧 Async email sent to:', to);
-      })
-      .catch(error => {
-         console.error('📧 Async email failed:', error);
-      });
+      .then(() => console.log('📧 Async email sent to:', to))
+      .catch(error => console.error('📧 Async email failed:', error));
 };
 
 // Project-specific email templates (keeping your existing ones)

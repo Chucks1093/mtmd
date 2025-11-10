@@ -8,7 +8,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import tspecOptions from './tspec.config';
 import { envConfig } from './config';
-import { SendMail } from './utils/mail.util';
+import { SendMail } from './utils/mail.utils';
 
 const app: Express = express();
 
