@@ -1,6 +1,7 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { envConfig } from '../config';
 
+// Project-specific email template (keeping your existing design)
 const generateProjectTemplate = (content: string, subject: string) => `
 <!DOCTYPE html>
 <html>
@@ -31,12 +32,15 @@ const generateProjectTemplate = (content: string, subject: string) => `
 </html>
 `;
 
+// Initialize Resend
+const resend = new Resend(envConfig.RESEND_API_KEY);
+
 export interface ISendMailOptions {
    to: string;
    subject: string;
    text?: string;
    html?: string;
-   attachments?: any[];
+   attachments?: any[]; // Resend uses different attachment format
 }
 
 export const SendMail = async ({
@@ -46,47 +50,38 @@ export const SendMail = async ({
    html,
    attachments,
 }: ISendMailOptions) => {
-   const { GMAIL_USER, GMAIL_APP_PASSWORD } = process.env;
+   const { RESEND_API_KEY, RESEND_FROM_EMAIL } = envConfig;
 
-   if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-      console.log('📧 Email skipped (Gmail not configured):', { to, subject });
+   // Skip email in development if not configured
+   if (!RESEND_API_KEY || !RESEND_FROM_EMAIL) {
+      console.log('📧 Email skipped (Resend not configured):', { to, subject });
       return true;
    }
 
    try {
-      // Create transporter with Gmail SMTP
-      const transporter = nodemailer.createTransport({
-         service: 'gmail',
-         auth: {
-            user: GMAIL_USER,
-            pass: GMAIL_APP_PASSWORD, // Use App Password, not regular password
-         },
+      const result = await resend.emails.send({
+         from: `National Toilet Campaign <${RESEND_FROM_EMAIL}>`,
+         to: [to],
+         subject,
+         html: html || generateProjectTemplate(text || '', subject),
+         text,
+         ...(attachments && attachments.length > 0 && { attachments }),
       });
 
-      const mailOptions = {
-         from: `National Toilet Campaign <${GMAIL_USER}>`,
-         to,
-         subject,
-         text,
-         html: html || generateProjectTemplate(text || '', subject),
-         attachments,
-      };
-
-      const info = await transporter.sendMail(mailOptions);
       console.log(
-         '✅ Email sent successfully via Gmail to:',
+         '✅ Email sent successfully via Resend to:',
          to,
          'ID:',
-         info.messageId
+         result.data
       );
       return true;
    } catch (error) {
-      console.error('❌ Failed to send email via Gmail:', error);
+      console.error('❌ Failed to send email via Resend:', error);
       return false;
    }
 };
 
-// Async version
+// Async version that doesn't block API responses
 export const SendMailAsync = async ({
    to,
    subject,
@@ -94,9 +89,14 @@ export const SendMailAsync = async ({
    html,
    attachments,
 }: ISendMailOptions) => {
+   // Fire and forget - don't wait for response
    SendMail({ to, subject, text, html, attachments })
-      .then(() => console.log('📧 Async email sent to:', to))
-      .catch(error => console.error('📧 Async email failed:', error));
+      .then(() => {
+         console.log('📧 Async email sent to:', to);
+      })
+      .catch(error => {
+         console.error('📧 Async email failed:', error);
+      });
 };
 
 // Project-specific email templates (keeping your existing ones)
