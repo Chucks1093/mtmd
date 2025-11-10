@@ -10,6 +10,7 @@ import Reports from './pages/Reports';
 import ReportDetails from './pages/ReportDetails';
 import Admins from './pages/Admins';
 import AcceptInvite from './pages/AcceptInvite';
+import DashboardOverview from './pages/DashboardOverview';
 
 const router = createBrowserRouter([
 	{
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
 	},
 	{
 		path: '/admin/auth',
+		loader: adminLoader,
 		element: <AdminLogin />,
 	},
 	{
@@ -34,7 +36,7 @@ const router = createBrowserRouter([
 		element: <DashboardLayout />,
 		children: [
 			{
-				element: <Reports />,
+				element: <DashboardOverview />,
 				index: true,
 			},
 			{
