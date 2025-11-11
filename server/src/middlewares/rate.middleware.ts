@@ -1,16 +1,11 @@
+// Copy this to your src/middlewares/rate.middleware.ts
 import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
 import { envConfig } from '../config';
 import { Request, Response } from 'express';
-const createKeyGenerator =
-   () =>
-   (req: Request): string => {
-      // Use user ID if authenticated, otherwise IP
-      return (req as any).user?.id || req.ip;
-   };
 
 export const appRateLimit: RateLimitRequestHandler = rateLimit({
    windowMs: 15 * 60 * 1000, // 15 minutes
-   max: envConfig.MODE === 'production' ? 1000 : 10000, // More lenient in dev
+   max: envConfig.MODE === 'production' ? 1000 : 10000,
    message: {
       error: 'Too many requests from this IP, please try again later.',
       retryAfter: '15 minutes',
@@ -18,7 +13,7 @@ export const appRateLimit: RateLimitRequestHandler = rateLimit({
    },
    standardHeaders: true,
    legacyHeaders: false,
-   keyGenerator: createKeyGenerator(),
+   // ✅ Remove custom keyGenerator - let library handle IP properly
    handler: (req: Request, res: Response) => {
       res.status(429).json({
          error: 'Too many requests',
