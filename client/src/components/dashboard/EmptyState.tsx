@@ -13,7 +13,14 @@ const EmptyState: React.FC<{
 				props.className
 			)}
 		>
-			<img src={props.image} className="size-[12rem]" alt="" />
+			<img
+				src={props.image}
+				onError={e => {
+					e.currentTarget.src = '/icons/search.svg';
+				}}
+				className="size-[12rem] opacity-80"
+				alt=""
+			/>
 			<h1 className="font-semibold text-md md:text-xl font-jakarta mt-3 text-gray-700">
 				{props.title}
 			</h1>

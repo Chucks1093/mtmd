@@ -111,7 +111,12 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
 				/>
 
 				{/* Hover overlay */}
-				<div className="absolute inset-0 bg-[#141414ad]  group-hover:bg-[#14141470] transition-all duration-200 rounded-lg flex items-center justify-center">
+				<div
+					className={cn(
+						'absolute inset-0 bg-[#141414ad]  group-hover:bg-[#14141470] transition-all duration-200 rounded-lg flex items-center justify-center',
+						className
+					)}
+				>
 					<ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 				</div>
 			</div>

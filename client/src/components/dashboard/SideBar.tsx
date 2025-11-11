@@ -2,7 +2,6 @@ import React from 'react';
 import {
 	LogOut,
 	LayoutGrid,
-	Settings,
 	ClipboardList,
 	Handshake,
 	Coins,
@@ -50,30 +49,30 @@ const navigationData: NavigationSection[] = [
 				link: '/admin/dashboard/admins',
 			},
 			{
-				icon: Coins, // ← Changed from FileSpreadsheet - better for donations
+				icon: Coins,
 				label: 'Donations',
-				id: 'dashboard',
+				id: 'donations',
 				link: '/admin/dashboard/donations',
 			},
 			{
-				icon: Handshake, // ← Changed from FileCheck2 - better for partners
+				icon: Handshake,
 				label: 'Partners',
-				id: 'dashboard',
-				link: '/dashboard/guarantors',
+				id: 'partners',
+				link: '/admin/dashboard/partners',
 			},
 		],
 	},
-	{
-		title: 'ACCOUNT',
-		items: [
-			{
-				icon: Settings, // ← Perfect as is
-				label: 'Settings',
-				id: 'session-history',
-				link: '/dashboard/settings',
-			},
-		],
-	},
+	// {
+	// 	title: 'ACCOUNT',
+	// 	items: [
+	// 		{
+	// 			icon: Settings, // ← Perfect as is
+	// 			label: 'Settings',
+	// 			id: 'session-history',
+	// 			link: '/dashboard/settings',
+	// 		},
+	// 	],
+	// },
 ];
 
 interface SideBarItemProps {
@@ -189,7 +188,7 @@ const SideBar: React.FC<SideBarProps> = ({ className, onNavigate }) => {
 							<div className="space-y-1">
 								{section.items.map(item => (
 									<SideBarItem
-										key={item.id}
+										key={item.label}
 										icon={item.icon}
 										label={item.label}
 										link={item.link}

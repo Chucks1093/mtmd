@@ -9,34 +9,60 @@ import morgan from 'morgan';
 import tspecOptions from './tspec.config';
 import { envConfig } from './config';
 import { SendMail } from './utils/mail.utils';
+import { appRateLimit } from './middlewares/rate.middleware';
+
+//TODO: ADD PROPER RATE LIMITER AND SECURITY MEASURES
 
 const app: Express = express();
 
 // Middleware setup
+app.set('trust proxy', 1);
 app.use(corsMiddleware());
 app.use(helmet());
 app.use(express.json({ limit: '10mb' }));
 app.use(morgan('combined'));
 app.use(express.urlencoded({ extended: true }));
+app.use(appRateLimit);
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
-   res.status(200).json({
+   const healthData = {
       success: true,
       message: 'National Toilet Campaign API is running',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
       environment: envConfig.MODE || 'development',
-   });
+      uptime: process.uptime(),
+      memory: {
+         used:
+            Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) /
+            100,
+         total:
+            Math.round((process.memoryUsage().heapTotal / 1024 / 1024) * 100) /
+            100,
+      },
+      system: {
+         platform: process.platform,
+         nodeVersion: process.version,
+      },
+   };
+
+   res.status(200).json(healthData);
 });
 
-// Tspec setup
 async function setupTspecDocs() {
-   const tspecMiddlewares = await TspecDocsMiddleware(tspecOptions);
-   app.use('/api-docs', ...(tspecMiddlewares as unknown as RequestHandler[]));
+   try {
+      const tspecMiddlewares = await TspecDocsMiddleware(tspecOptions);
+      app.use(
+         '/api-docs',
+         ...(tspecMiddlewares as unknown as RequestHandler[])
+      );
+   } catch (error) {
+      console.error('Failed to setup API docs:', error);
+   }
 }
 
-setupTspecDocs().catch(console.error);
+setupTspecDocs();
 
 // Quick test endpoint
 app.get('/test-email', async (req, res) => {

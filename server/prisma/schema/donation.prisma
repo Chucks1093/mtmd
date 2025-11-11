@@ -1,0 +1,41 @@
+//prisma/schema/donation.prisma
+
+model Donation {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  donorName         String
+  donorEmail        String
+  donorPhone        String?
+  amount            Int       // Amount in kobo (Paystack uses kobo, not naira)
+  currency          String    @default("NGN")
+  type              DonationType @default(ONE_TIME)
+  message           String?   @db.Text
+  isAnonymous       Boolean   @default(false)
+  state             String?
+  lga               String?
+  
+  status            DonationStatus @default(PENDING)
+  paystackReference String?   @unique
+  paystackResponse  Json?     // Store full Paystack response for audit trail
+  
+  @@index([status])
+  @@index([donorEmail])
+  @@index([createdAt])
+  @@index([state])
+  @@index([paystackReference])
+}
+
+enum DonationStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+enum DonationType {
+  ONE_TIME
+  MONTHLY
+  ANNUAL
+}

@@ -49,6 +49,13 @@ export const envSchema = z.object({
       .string()
       .email('RESEND_FROM_EMAIL must be a valid email address')
       .min(1, 'RESEND_FROM_EMAIL is required'),
+   PAYSTACK_SECRET_KEY: z
+      .string()
+      .min(1, 'PAYSTACK_SECRET_KEY is required for payment processing'),
+   PAYSTACK_PUBLIC_KEY: z
+      .string()
+      .min(1, 'PAYSTACK_PUBLIC_KEY is required for payment processing')
+      .optional(),
 });
 
 export const envConfig = envSchema.parse({
@@ -65,6 +72,9 @@ export const envConfig = envSchema.parse({
    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
    RESEND_API_KEY: process.env.RESEND_API_KEY,
    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
+
+   PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY,
+   PAYSTACK_PUBLIC_KEY: process.env.PAYSTACK_PUBLIC_KEY,
 });
 
 export const appConfig = {

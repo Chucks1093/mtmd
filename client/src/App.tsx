@@ -5,12 +5,15 @@ import { Toaster } from 'react-hot-toast';
 import OAuthCallback from './pages/OAuthCallback';
 import LandingPage from './pages/LandingPage';
 import DashboardLayout from './pages/DashboardLayout';
-import { adminLoader } from './helpers/admin.loader';
+import { adminLoader, loginPageLoader } from './helpers/admin.loader';
 import Reports from './pages/Reports';
 import ReportDetails from './pages/ReportDetails';
 import Admins from './pages/Admins';
 import AcceptInvite from './pages/AcceptInvite';
 import DashboardOverview from './pages/DashboardOverview';
+import Donations from './pages/Donations';
+import Partners from './pages/Partners';
+import DonationCallback from './components/landing-page/DonationCallback';
 
 const router = createBrowserRouter([
 	{
@@ -18,8 +21,12 @@ const router = createBrowserRouter([
 		element: <LandingPage />,
 	},
 	{
+		path: '/donation/callback',
+		element: <DonationCallback />,
+	},
+	{
 		path: '/admin/auth',
-		loader: adminLoader,
+		loader: loginPageLoader,
 		element: <AdminLogin />,
 	},
 	{
@@ -36,20 +43,28 @@ const router = createBrowserRouter([
 		element: <DashboardLayout />,
 		children: [
 			{
+				index: true, // Use index instead of empty path
 				element: <DashboardOverview />,
-				index: true,
 			},
 			{
-				path: '/admin/dashboard/reports',
+				path: 'reports', // Remove '/admin/dashboard' prefix
 				element: <Reports />,
 			},
 			{
-				path: '/admin/dashboard/admins',
+				path: 'admins',
 				element: <Admins />,
 			},
 			{
-				path: '/admin/dashboard/reports/:id',
+				path: 'reports/:id',
 				element: <ReportDetails />,
+			},
+			{
+				path: 'donations',
+				element: <Donations />,
+			},
+			{
+				path: 'partners',
+				element: <Partners />,
 			},
 		],
 	},

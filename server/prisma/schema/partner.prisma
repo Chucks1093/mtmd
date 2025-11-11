@@ -1,0 +1,54 @@
+//prisma/schema/partner.prisma
+
+model Partner {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  name              String      @unique
+  description       String?      @db.Text
+  type              PartnerType
+  logo              String     // Cloudinary URL
+  website           String?
+  email             String?
+  phone             String?
+  contactPerson     String?
+  contactPersonRole String?
+  state             String?
+  lga               String?
+  address           String?     @db.Text
+  
+  socialMedia       Json?       // Store social media links as JSON
+  partnershipDetails Json?      // Store partnership details as JSON
+  
+  featured          Boolean     @default(false)
+  displayOrder      Int         @default(0)
+  status            PartnerStatus @default(PENDING)
+  
+  createdById       String      // Admin ID who created the partner
+  updatedById       String?     // Admin ID who last updated the partner
+
+  @@index([status])
+  @@index([type])
+  @@index([featured])
+  @@index([state])
+  @@index([createdAt])
+  @@index([displayOrder])
+  @@index([createdById])
+}
+
+enum PartnerStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum PartnerType {
+  CORPORATE
+  NGO
+  GOVERNMENT
+  INTERNATIONAL
+  COMMUNITY
+  ACADEMIC
+  MEDIA
+}
