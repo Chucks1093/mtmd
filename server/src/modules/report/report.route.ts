@@ -19,10 +19,10 @@ reportRouter.post('/', createReport);
 reportRouter.get('/location', getReportsByLocation); // For map visualization
 reportRouter.get('/stats', getReportStats); // For public statistics
 reportRouter.get('/recent', getRecentReports); // For recent approved reports
+reportRouter.get('/', getAllReports); // Get all reports with filters
 
 // Admin routes (protected)
 reportRouter.get('/export', authenticateAdmin, exportReports);
-reportRouter.get('/', authenticateAdmin, getAllReports); // Get all reports with filters
 reportRouter.get('/:id', authenticateAdmin, getReport); // Get specific report
 reportRouter.patch('/:id/status', authenticateAdmin, updateReportStatus); // Update report status
 reportRouter.delete('/:id', authenticateAdmin, deleteReport); // Delete report

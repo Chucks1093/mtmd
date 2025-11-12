@@ -116,7 +116,7 @@ const SearchableSelect: React.FC<{
 				</button>
 			</PopoverTrigger>
 			<PopoverContent
-				className="w-[var(--radix-popover-trigger-width)] p-0 border border-blue-300"
+				className="w-[var(--radix-popover-trigger-width)] p-0 border border-green-300"
 				align="start"
 			>
 				<Command
@@ -159,14 +159,14 @@ const SearchableSelect: React.FC<{
 											'flex items-center justify-between py-4 border-b border-b-gray-100 rounded-none px-6 cursor-pointer',
 											option.disabled &&
 												'opacity-50 cursor-not-allowed',
-											isSelected && 'bg-blue-100'
+											isSelected && 'bg-green-100'
 										)}
 									>
 										<div className="flex flex-col">
 											<span
 												className={cn(
 													'text-gray-500',
-													isSelected && 'text-blue-500'
+													isSelected && 'text-green-500'
 												)}
 											>
 												{option.label}
@@ -179,7 +179,7 @@ const SearchableSelect: React.FC<{
 										</div>
 										<Check
 											className={cn(
-												'ml-auto h-4 w-4 stroke-blue-600',
+												'ml-auto h-4 w-4 stroke-green-600',
 												isSelected ? 'opacity-100' : 'opacity-0'
 											)}
 										/>

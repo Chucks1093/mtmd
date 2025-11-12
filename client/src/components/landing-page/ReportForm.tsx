@@ -5,9 +5,8 @@ import { useZodValidation } from '@/hooks/useZodValidation';
 import statesData from '@/data/state-lga.json';
 import wardsData from '@/data/wards_new.json';
 import FormSelector from '../shared/FormSelector';
-import { motion } from 'framer-motion';
 import CheckboxOption from '../common/CheckboxOption';
-import { Send } from 'lucide-react';
+import { ClipboardPlus, Send } from 'lucide-react';
 import reportService from '@/services/report.service';
 import uploadService from '@/services/upload.service';
 import showToast from '@/utils/toast.util';
@@ -33,7 +32,7 @@ export const FacilityTypeEnum = z.enum([
 
 export const ReportFormSchema = z.object({
 	submitterName: z.string().min(2, 'Submitter name is required'),
-	submitterEmail: z.string().email('Invalid email address').or(z.literal('')),
+	submitterEmail: z.email('Invalid email address').or(z.literal('')),
 	submitterPhone: z
 		.string()
 		.min(10, 'Valid phone number is required')
@@ -286,31 +285,24 @@ function ReportForm() {
 	};
 
 	return (
-		<section
-			className="py-30 bg-gray-50 relative overflow-hidden"
-			id="contact"
-		>
+		<section className=" mx-auto flex flex-col items-center py-7 mt-[4rem] px-4 bg-gray-50">
 			{/* Content */}
-			<div className="max-w-6xl mx-auto px-6 text-center relative z-10">
-				<motion.p
-					className="px-8 py-2 rounded-lg bg-blue-50 text-blue-500 w-fit mx-auto mb-5 "
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ duration: 0.24 }}
-				>
+			<div className="max-w-6xl mx-auto px-6 text-center relative z-10 bg-gray-50">
+				<div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-600 rounded-full text-sm font-medium ">
+					<ClipboardPlus className="w-4 h-4" />
 					Report Form
-				</motion.p>
-				<h2 className="text-3xl md:text-6xl font-black text-gray-700 mb-4 font-space-grotesk tracking-tighter">
+				</div>
+				<h1 className="text-gray-700 tracking-tight font-space-grotesk text-[1.8rem] md:text-[3rem] font-semibold mt-3 text-center">
 					Submit Toilet Report
-				</h2>
-				<p className="text-sm md:text-lg text-gray-500 mb-12">
+				</h1>
+				<p className="text-gray-400 text-md md:text-lg mt-2 text-center max-w-2xl mx-auto">
 					Help improve sanitation infrastructure across Nigeria by
 					reporting toilet conditions in your area. Your report will help
 					government agencies and organizations make data-driven
 					improvements.
 				</p>
 				<form
-					className="relative z-10 text-left max-w-6xl mx-auto"
+					className="relative z-10 text-left max-w-6xl mx-auto mt-8"
 					onSubmit={handleSubmit}
 				>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -488,7 +480,7 @@ function ReportForm() {
 								<button
 									type="submit"
 									disabled={isSubmitting || !hasConfirmed}
-									className="bg-gray-600 flex gap-2 hover:bg-gray-700 active:bg-gray-700 disabled:bg-gray-300 mt-3 disabled:cursor-not-allowed text-white font-semibold font-jakarta px-14 py-3 rounded-lg transition-colors duration-200 outline-none ring-2 ring-gray-500 ring-offset-2 cursor-pointer "
+									className="bg-green-600 flex gap-2 hover:bg-green-700 active:bg-green-700 disabled:bg-gray-300 mt-3 disabled:cursor-not-allowed text-white font-semibold font-jakarta px-14 py-3 rounded-lg transition-colors duration-200 outline-none ring-2 disabled:ring-gray-500 ring-green-500 ring-offset-2 cursor-pointer "
 								>
 									{isSubmitting ? 'SUBMITTING...' : 'SUBMIT REPORT'}
 									<Send className="size-6" />

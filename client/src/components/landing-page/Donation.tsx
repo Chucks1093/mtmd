@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Users, Shield, CheckCircle } from 'lucide-react';
+import { Heart, Shield } from 'lucide-react';
 import { z } from 'zod';
 import { useZodValidation } from '@/hooks/useZodValidation';
 import FormInput from '@/components/shared/FormInput';
@@ -158,96 +158,44 @@ const Donation: React.FC = () => {
 	};
 
 	return (
-		<section className="py-16 bg-gradient-to-br from-blue-50 via-white to-green-50">
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+		<section className=" my-[4rem] px-4">
+			<div className="max-w-7xl mx-auto flex flex-col items-center bg-white">
 				{/* Section Header */}
-				<div className="text-center mb-12">
-					<div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6">
-						<Heart className="w-4 h-4" />
-						Support the Campaign
-					</div>
-					<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-						Help Improve Sanitation Across Nigeria
-					</h2>
-					<p className="text-xl text-gray-600 max-w-3xl mx-auto">
-						Your donation directly supports toilet facility improvements,
-						awareness campaigns, and sustainable sanitation solutions for
-						communities nationwide.
-					</p>
+				<div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium ">
+					<Heart className="w-4 h-4" />
+					Support a Ward
 				</div>
+				<h1 className="text-gray-700 tracking-tight font-space-grotesk text-[1.8rem] md:text-[3rem] font-semibold mt-2 text-center">
+					Make A Donation
+				</h1>
+				<p className="text-gray-600 text-md md:text-lg mt-2 text-center max-w-2xl">
+					Your generous contributions directly fund the maintenance and
+					improvement of public toilet facilities.
+				</p>
 
-				<div className="grid lg:grid-cols-2 gap-12 items-start">
+				<div className="grid lg:grid-cols-2 gap-12 items-start mt-8">
 					{/* Impact Cards */}
 					<div className="space-y-6">
-						<h3 className="text-2xl font-semibold text-gray-900 mb-6">
-							Your Impact
-						</h3>
-
-						<div className="grid gap-6">
-							<div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
-								<div className="flex items-start gap-4">
-									<div className="p-3 bg-blue-50 rounded-lg">
-										<Users className="w-6 h-6 text-blue-600" />
-									</div>
-									<div>
-										<h4 className="text-lg font-semibold text-gray-900 mb-2">
-											₦500
-										</h4>
-										<p className="text-gray-600">
-											Supports awareness campaigns reaching 100+
-											people
-										</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
-								<div className="flex items-start gap-4">
-									<div className="p-3 bg-green-50 rounded-lg">
-										<Shield className="w-6 h-6 text-green-600" />
-									</div>
-									<div>
-										<h4 className="text-lg font-semibold text-gray-900 mb-2">
-											₦5,000
-										</h4>
-										<p className="text-gray-600">
-											Funds maintenance for existing toilet
-											facilities
-										</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
-								<div className="flex items-start gap-4">
-									<div className="p-3 bg-purple-50 rounded-lg">
-										<CheckCircle className="w-6 h-6 text-purple-600" />
-									</div>
-									<div>
-										<h4 className="text-lg font-semibold text-gray-900 mb-2">
-											₦25,000
-										</h4>
-										<p className="text-gray-600">
-											Contributes to new toilet facility construction
-										</p>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-							<div className="text-center">
-								<div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-									<Heart className="w-6 h-6 text-blue-600" />
-								</div>
-								<h4 className="text-lg font-semibold text-blue-900 mb-2">
-									Transparent Impact
-								</h4>
-								<p className="text-blue-700">
-									100% of your donation goes directly to sanitation
-									improvements. Track your impact through our public
-									reports.
-								</p>
+						{/* Quick Amount Selection */}
+						<div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+							<label className="block text-sm font-medium text-gray-700 mb-3">
+								Select Amount <span className="text-red-500">*</span>
+							</label>
+							<div className="grid grid-cols-3 gap-4 mb-4">
+								{quickAmounts.map(amount => (
+									<button
+										key={amount}
+										type="button"
+										onClick={() => handleQuickAmountSelect(amount)}
+										className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors cursor-pointer ${
+											formData.amount === amount.toString()
+												? 'border-green-600 bg-green-50 text-green-700'
+												: 'border-gray-200 text-gray-700 hover:border-gray-300'
+										}`}
+									>
+										₦{amount.toLocaleString()}
+									</button>
+								))}
 							</div>
 						</div>
 					</div>
@@ -255,52 +203,21 @@ const Donation: React.FC = () => {
 					{/* Donation Form */}
 					<div className="space-y-6">
 						<div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
-							<h3 className="text-2xl font-semibold text-gray-900 mb-6">
-								Make a Donation
-							</h3>
-
 							<form onSubmit={handleSubmit} className="space-y-6">
-								{/* Quick Amount Selection */}
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-3">
-										Select Amount{' '}
-										<span className="text-red-500">*</span>
-									</label>
-									<div className="grid grid-cols-3 gap-3 mb-4">
-										{quickAmounts.map(amount => (
-											<button
-												key={amount}
-												type="button"
-												onClick={() =>
-													handleQuickAmountSelect(amount)
-												}
-												className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${
-													formData.amount === amount.toString()
-														? 'border-blue-600 bg-blue-50 text-blue-700'
-														: 'border-gray-200 text-gray-700 hover:border-gray-300'
-												}`}
-											>
-												₦{amount.toLocaleString()}
-											</button>
-										))}
-									</div>
-
-									<FormInput
-										label="Custom Amount (₦)"
-										value={formData.amount}
-										onChange={value =>
-											handleInputChange('amount', value)
-										}
-										placeholder="Enter amount"
-										type="number"
-										required
-										error={errors.amount}
-										touched={touched.amount}
-										disabled={isSubmitting}
-									/>
-								</div>
-
 								{/* Donation Type */}
+								<FormInput
+									label="Custom Amount (₦)"
+									value={formData.amount}
+									onChange={value =>
+										handleInputChange('amount', value)
+									}
+									placeholder="Enter amount"
+									type="number"
+									required
+									error={errors.amount}
+									touched={touched.amount}
+									disabled={isSubmitting}
+								/>
 								<FormSelector
 									label="Donation Type"
 									value={getCurrentDonationTypeIndex()}
@@ -449,65 +366,6 @@ const Donation: React.FC = () => {
 									</div>
 								</div>
 							</form>
-						</div>
-
-						{/* Recent Donors Section */}
-						<div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-							<h4 className="text-lg font-semibold text-gray-900 mb-4">
-								Recent Supporters
-							</h4>
-							<div className="space-y-3">
-								{[
-									{
-										name: 'Anonymous',
-										amount: 5000,
-										timeAgo: '2 hours ago',
-										isAnonymous: true,
-									},
-									{
-										name: 'Adebayo M.',
-										amount: 2500,
-										timeAgo: '5 hours ago',
-										isAnonymous: false,
-									},
-									{
-										name: 'Sarah O.',
-										amount: 10000,
-										timeAgo: '1 day ago',
-										isAnonymous: false,
-									},
-									{
-										name: 'Anonymous',
-										amount: 1000,
-										timeAgo: '2 days ago',
-										isAnonymous: true,
-									},
-								].map((donor, index) => (
-									<div
-										key={index}
-										className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0"
-									>
-										<div className="flex items-center space-x-3">
-											<div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-												{donor.isAnonymous
-													? '?'
-													: donor.name.charAt(0)}
-											</div>
-											<div>
-												<p className="text-sm font-medium text-gray-900">
-													{donor.name}
-												</p>
-												<p className="text-xs text-gray-500">
-													{donor.timeAgo}
-												</p>
-											</div>
-										</div>
-										<span className="text-sm font-medium text-gray-700">
-											₦{donor.amount.toLocaleString()}
-										</span>
-									</div>
-								))}
-							</div>
 						</div>
 					</div>
 				</div>

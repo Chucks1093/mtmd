@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router';
 import {
 	ComposableMap,
 	Geographies,
 	Geography,
 	ZoomableGroup,
 } from 'react-simple-maps';
+import CircularSpinner from '../common/CircularSpinnerProps';
 
 interface ReportData {
 	state: string;
@@ -93,6 +95,8 @@ const ToiletReportsMap: React.FC<ToiletReportsMapProps> = ({
 	const [showTooltipEl, setShowTooltipEl] = useState(false);
 	const [maxReports, setMaxReports] = useState(0);
 
+	const location = useLocation();
+	const isAdminRoute = location.pathname.startsWith('/admin');
 	// Load GeoJSON data
 	useEffect(() => {
 		const loadGeoData = async () => {
@@ -208,29 +212,36 @@ const ToiletReportsMap: React.FC<ToiletReportsMapProps> = ({
 		const stateData = processedData[stateKey];
 
 		if (stateData && stateData.total > 0) {
-			setTooltipContent(`
-				<div class="bg-white p-3 rounded-lg shadow-lg border max-w-xs">
-					<h3 class="font-semibold text-gray-900">${stateName}</h3>
-					<div class="mt-2 space-y-1 text-sm">
-						<div class="flex justify-between">
-							<span>Total Reports:</span>
-							<span class="font-medium">${stateData.total}</span>
-						</div>
-						<div class="flex justify-between text-green-600">
-							<span>Approved:</span>
-							<span class="font-medium">${stateData.approved}</span>
-						</div>
-						<div class="flex justify-between text-yellow-600">
-							<span>Pending:</span>
-							<span class="font-medium">${stateData.pending}</span>
-						</div>
-						<div class="flex justify-between text-red-600">
-							<span>Rejected:</span>
-							<span class="font-medium">${stateData.rejected}</span>
-						</div>
-					</div>
-				</div>
-			`);
+			const tooltipHTML = `
+    <div class="bg-white p-3 rounded-lg shadow-lg border max-w-xs">
+      <h3 class="font-semibold text-gray-900">${stateName}</h3>
+      <div class="mt-2 space-y-1 text-sm">
+        <div class="flex justify-between">
+          <span>Total Reports:</span>
+          <span class="font-medium">${stateData.total}</span>
+        </div>
+        <div class="flex justify-between text-green-600">
+          <span>Approved:</span>
+          <span class="font-medium">${stateData.approved}</span>
+        </div>
+        ${
+				isAdminRoute
+					? `
+            <div class="flex justify-between text-yellow-600">
+              <span>Pending:</span>
+              <span class="font-medium">${stateData.pending}</span>
+            </div>
+            <div class="flex justify-between text-red-600">
+              <span>Rejected:</span>
+              <span class="font-medium">${stateData.rejected}</span>
+            </div>`
+					: ''
+			}
+      </div>
+    </div>
+  `;
+
+			setTooltipContent(tooltipHTML);
 		} else {
 			setTooltipContent(`
 				<div class="bg-white p-3 rounded-lg shadow-lg border">
@@ -267,7 +278,10 @@ const ToiletReportsMap: React.FC<ToiletReportsMapProps> = ({
 			<div className={`relative ${className}`}>
 				<div className="w-full bg-white rounded-lg shadow-sm border h-96 flex items-center justify-center">
 					<div className="text-center">
-						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+						<CircularSpinner
+							className="mx-auto mb-2 "
+							color="oklch(72.3% 0.219 149.579)"
+						/>
 						<p className="text-gray-600">Loading Nigerian map data...</p>
 					</div>
 				</div>
