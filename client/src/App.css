@@ -1,3 +1,7 @@
+button {
+	cursor: pointer;
+}
+
 .check {
 	border: 1px solid red;
 }

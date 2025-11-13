@@ -3,18 +3,10 @@ import {
 	BarChart3,
 	Map as MapIcon,
 	MapPin,
-	Building2,
 	Brain,
 	Folder,
 	FolderCheck,
-	ClipboardList,
-	GraduationCap,
-	Home,
-	Cross,
-	ShoppingCart,
-	Building,
-	Users,
-	MoreHorizontal,
+	Map,
 } from 'lucide-react';
 import ToiletReportsMap from '../shared/ToiletReportsMap';
 import {
@@ -124,71 +116,71 @@ const SelectedStateStats = ({
 				</div>
 			),
 		},
-		{
-			id: 'facility-breakdown',
-			icon: <ClipboardList className="w-5 h-5" />,
-			title: 'FACILITY BREAKDOWN',
-			details: (
-				<div className="grid grid-cols-2 gap-4">
-					<FinancialMetricCard
-						value={numberWithCommas(stateStats.facilities.public)}
-						title="PUBLIC"
-						iconColor="bg-blue-50 border border-blue-400"
-						icon={<Building2 className="w-5 h-5 text-blue-700" />}
-						hideInfo
-					/>
-					<FinancialMetricCard
-						value={numberWithCommas(stateStats.facilities.private)}
-						title="PRIVATE"
-						iconColor="bg-purple-50 border border-purple-400"
-						icon={<Home className="w-5 h-5 text-purple-700" />}
-						hideInfo
-					/>
-					<FinancialMetricCard
-						value={numberWithCommas(stateStats.facilities.school)}
-						title="SCHOOL"
-						iconColor="bg-green-50 border border-green-400"
-						icon={<GraduationCap className="w-5 h-5 text-green-700" />}
-						hideInfo
-					/>
-					<FinancialMetricCard
-						value={numberWithCommas(stateStats.facilities.hospital)}
-						title="HOSPITAL"
-						iconColor="bg-red-50 border border-red-400"
-						icon={<Cross className="w-5 h-5 text-red-700" />}
-						hideInfo
-					/>
-					<FinancialMetricCard
-						value={numberWithCommas(stateStats.facilities.market)}
-						title="MARKET"
-						iconColor="bg-yellow-50 border border-yellow-400"
-						icon={<ShoppingCart className="w-5 h-5 text-yellow-700" />}
-						hideInfo
-					/>
-					<FinancialMetricCard
-						value={numberWithCommas(stateStats.facilities.office)}
-						title="OFFICE"
-						iconColor="bg-cyan-50 border border-cyan-400"
-						icon={<Building className="w-5 h-5 text-cyan-700" />}
-						hideInfo
-					/>
-					<FinancialMetricCard
-						value={numberWithCommas(stateStats.facilities.residential)}
-						title="RESIDENTIAL"
-						iconColor="bg-indigo-50 border border-indigo-400"
-						icon={<Users className="w-5 h-5 text-indigo-700" />}
-						hideInfo
-					/>
-					<FinancialMetricCard
-						value={numberWithCommas(stateStats.facilities.other)}
-						title="OTHER"
-						iconColor="bg-gray-50 border border-gray-400"
-						icon={<MoreHorizontal className="w-5 h-5 text-gray-700" />}
-						hideInfo
-					/>
-				</div>
-			),
-		},
+		// {
+		// 	id: 'facility-breakdown',
+		// 	icon: <ClipboardList className="w-5 h-5" />,
+		// 	title: 'FACILITY BREAKDOWN',
+		// 	details: (
+		// 		<div className="grid grid-cols-2 gap-4">
+		// 			<FinancialMetricCard
+		// 				value={numberWithCommas(stateStats.facilities.public)}
+		// 				title="PUBLIC"
+		// 				iconColor="bg-blue-50 border border-blue-400"
+		// 				icon={<Building2 className="w-5 h-5 text-blue-700" />}
+		// 				hideInfo
+		// 			/>
+		// 			<FinancialMetricCard
+		// 				value={numberWithCommas(stateStats.facilities.private)}
+		// 				title="PRIVATE"
+		// 				iconColor="bg-purple-50 border border-purple-400"
+		// 				icon={<Home className="w-5 h-5 text-purple-700" />}
+		// 				hideInfo
+		// 			/>
+		// 			<FinancialMetricCard
+		// 				value={numberWithCommas(stateStats.facilities.school)}
+		// 				title="SCHOOL"
+		// 				iconColor="bg-green-50 border border-green-400"
+		// 				icon={<GraduationCap className="w-5 h-5 text-green-700" />}
+		// 				hideInfo
+		// 			/>
+		// 			<FinancialMetricCard
+		// 				value={numberWithCommas(stateStats.facilities.hospital)}
+		// 				title="HOSPITAL"
+		// 				iconColor="bg-red-50 border border-red-400"
+		// 				icon={<Cross className="w-5 h-5 text-red-700" />}
+		// 				hideInfo
+		// 			/>
+		// 			<FinancialMetricCard
+		// 				value={numberWithCommas(stateStats.facilities.market)}
+		// 				title="MARKET"
+		// 				iconColor="bg-yellow-50 border border-yellow-400"
+		// 				icon={<ShoppingCart className="w-5 h-5 text-yellow-700" />}
+		// 				hideInfo
+		// 			/>
+		// 			<FinancialMetricCard
+		// 				value={numberWithCommas(stateStats.facilities.office)}
+		// 				title="OFFICE"
+		// 				iconColor="bg-cyan-50 border border-cyan-400"
+		// 				icon={<Building className="w-5 h-5 text-cyan-700" />}
+		// 				hideInfo
+		// 			/>
+		// 			<FinancialMetricCard
+		// 				value={numberWithCommas(stateStats.facilities.residential)}
+		// 				title="RESIDENTIAL"
+		// 				iconColor="bg-indigo-50 border border-indigo-400"
+		// 				icon={<Users className="w-5 h-5 text-indigo-700" />}
+		// 				hideInfo
+		// 			/>
+		// 			<FinancialMetricCard
+		// 				value={numberWithCommas(stateStats.facilities.other)}
+		// 				title="OTHER"
+		// 				iconColor="bg-gray-50 border border-gray-400"
+		// 				icon={<MoreHorizontal className="w-5 h-5 text-gray-700" />}
+		// 				hideInfo
+		// 			/>
+		// 		</div>
+		// 	),
+		// },
 	];
 	return (
 		<div className="space-y-10 mt-8 ">
@@ -212,7 +204,7 @@ const SelectedStateStats = ({
 					</div>
 
 					<div className="flex-1 min-w-0 pt-1 space-y-5">
-						<h1 className="text-lg font-medium text-gray-600 uppercase">
+						<h1 className="text-lg font-semibold tracking-wide text-gray-700 uppercase  pb-1">
 							{step.title}
 						</h1>
 						<div className="bg-white p-4 rounded-lg border-dashed border border-gray-300">
@@ -325,11 +317,12 @@ const ReportStats = () => {
 	return (
 		<section className="max-w-7xl mx-auto flex flex-col items-center my-[4rem] px-4">
 			{/* Header */}
-			<p className="px-4 py-2 rounded-lg bg-green-50 text-green-500">
-				Report Stats
-			</p>
+			<div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-600 rounded-full text-sm font-medium ">
+				<Map className="w-4 h-4" />
+				Map View
+			</div>
 			<h1 className="text-gray-700 tracking-tight font-space-grotesk text-[1.8rem] md:text-[3rem] font-semibold mt-3 text-center">
-				Toilet Reports Map View
+				Toilet Reports Map
 			</h1>
 			<p className="text-gray-600 text-md md:text-lg mt-2 text-center max-w-2xl">
 				Visualizing toilet condition reports across Nigeria to understand

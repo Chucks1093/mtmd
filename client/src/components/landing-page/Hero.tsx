@@ -35,7 +35,7 @@ function Hero() {
 								</button>
 							</a>
 							<a href="#services">
-								<button className="py-3.5 px-7 rounded-md border-2 border-gray-300 text-gray-500 bg-white hover:border-blue-600 hover:text-blue-600">
+								<button className="py-3.5 px-7 rounded-md border-2 border-gray-300 text-gray-500 bg-white hover:border-green-600 hover:text-green-600">
 									Support a Ward
 								</button>
 							</a>

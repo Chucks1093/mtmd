@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Heart, Shield } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Heart } from 'lucide-react';
 import { z } from 'zod';
 import { useZodValidation } from '@/hooks/useZodValidation';
 import FormInput from '@/components/shared/FormInput';
@@ -12,6 +12,8 @@ import donationService, {
 	type CreateDonationRequest,
 	ApiError,
 } from '@/services/donation.service';
+import statesData from '@/data/state-lga.json';
+import wardsData from '@/data/wards_new.json';
 
 // Updated Donation validation schema to match the service
 export const DonationSchema = z.object({
@@ -23,13 +25,15 @@ export const DonationSchema = z.object({
 			'Minimum donation amount is ₦500'
 		),
 	donorName: z.string().min(2, 'Full name is required'),
-	donorEmail: z.string().email('Please enter a valid email address'),
+	donorEmail: z.email('Please enter a valid email address'),
 	donorPhone: z.string().optional(),
 	type: z.enum(['ONE_TIME', 'MONTHLY', 'ANNUAL']).default('ONE_TIME'),
 	message: z.string().optional(),
 	isAnonymous: z.boolean().default(false),
-	state: z.string().optional(),
-	lga: z.string().optional(),
+	state: z.string().min(2, 'State is required'),
+	lga: z.string().min(2, 'Local Government Area is required'),
+	ward: z.string().or(z.literal('')),
+	coordinates: z.string().or(z.literal('')),
 });
 
 type DonationFormData = z.infer<typeof DonationSchema>;
@@ -60,6 +64,8 @@ const initialDonationData: DonationFormData = {
 	isAnonymous: false,
 	state: '',
 	lga: '',
+	coordinates: '',
+	ward: '',
 };
 
 // Quick amount selection buttons
@@ -69,6 +75,10 @@ const Donation: React.FC = () => {
 	const [formData, setFormData] =
 		useState<DonationFormData>(initialDonationData);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [availableLGAs, setAvailableLGAs] = useState<string[]>([]);
+	const [availableWards, setAvailableWards] = useState<
+		Array<{ longitude: number; latitude: number; name: string }>
+	>([]);
 
 	const {
 		validate,
@@ -98,6 +108,33 @@ const Donation: React.FC = () => {
 		const index = donationTypeValues.indexOf(formData.type);
 		return index.toString();
 	};
+
+	const stateOptions = useMemo(() => {
+		return statesData.map(state => ({
+			value: state.name,
+			label: state.name,
+		}));
+	}, []);
+
+	// LGA options based on selected state
+	const lgaOptions = useMemo(() => {
+		return availableLGAs.map((lga, i) => ({
+			value: lga,
+			label: lga,
+			id: i.toString(),
+		}));
+	}, [availableLGAs]);
+
+	// Ward options based on selected state and LGA
+	const wardOptions = useMemo(() => {
+		return availableWards.map((ward, i) => ({
+			...ward,
+			value: ward.name,
+			label: ward.name,
+			description: `Lat: ${ward.latitude}, Long: ${ward.longitude}`,
+			id: i.toString(),
+		}));
+	}, [availableWards]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -159,7 +196,7 @@ const Donation: React.FC = () => {
 
 	return (
 		<section className=" my-[4rem] px-4">
-			<div className="max-w-7xl mx-auto flex flex-col items-center bg-white">
+			<div className="max-w-6xl mx-auto flex flex-col items-center bg-white">
 				{/* Section Header */}
 				<div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium ">
 					<Heart className="w-4 h-4" />
@@ -173,11 +210,11 @@ const Donation: React.FC = () => {
 					improvement of public toilet facilities.
 				</p>
 
-				<div className="grid lg:grid-cols-2 gap-12 items-start mt-8">
+				<div className="grid lg:grid-cols-2 gap-12 items-start mt-8 w-full">
 					{/* Impact Cards */}
-					<div className="space-y-6">
+					<div className="space-y-6 p-8 shadow-sm border border-gray-100  rounded-xl">
 						{/* Quick Amount Selection */}
-						<div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+						<div className="bg-white  ">
 							<label className="block text-sm font-medium text-gray-700 mb-3">
 								Select Amount <span className="text-red-500">*</span>
 							</label>
@@ -198,6 +235,40 @@ const Donation: React.FC = () => {
 								))}
 							</div>
 						</div>
+						<FormInput
+							label="Custom Amount (₦)"
+							value={formData.amount}
+							onChange={value => handleInputChange('amount', value)}
+							placeholder="Enter amount"
+							type="number"
+							required
+							error={errors.amount}
+							touched={touched.amount}
+							disabled={isSubmitting}
+						/>
+						<FormSelector
+							label="Donation Type"
+							value={getCurrentDonationTypeIndex()}
+							onChange={value => {
+								const actualValue = donationTypeValues[Number(value)];
+								if (actualValue) handleInputChange('type', actualValue);
+							}}
+							options={donationTypeOptions}
+							required
+							placeholder="Select donation type"
+							disabled={isSubmitting}
+							searchable={false}
+						/>
+						{/* Optional Message */}
+						<FormInput
+							label="Message (Optional)"
+							value={formData.message || ''}
+							onChange={value => handleInputChange('message', value)}
+							placeholder="Leave a message of support..."
+							type="textarea"
+							rows={3}
+							disabled={isSubmitting}
+						/>
 					</div>
 
 					{/* Donation Form */}
@@ -205,41 +276,9 @@ const Donation: React.FC = () => {
 						<div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
 							<form onSubmit={handleSubmit} className="space-y-6">
 								{/* Donation Type */}
-								<FormInput
-									label="Custom Amount (₦)"
-									value={formData.amount}
-									onChange={value =>
-										handleInputChange('amount', value)
-									}
-									placeholder="Enter amount"
-									type="number"
-									required
-									error={errors.amount}
-									touched={touched.amount}
-									disabled={isSubmitting}
-								/>
-								<FormSelector
-									label="Donation Type"
-									value={getCurrentDonationTypeIndex()}
-									onChange={value => {
-										const actualValue =
-											donationTypeValues[Number(value)];
-										if (actualValue)
-											handleInputChange('type', actualValue);
-									}}
-									options={donationTypeOptions}
-									required
-									placeholder="Select donation type"
-									disabled={isSubmitting}
-									searchable={false}
-								/>
 
 								{/* Personal Information */}
-								<div className="border-t pt-6">
-									<h4 className="text-lg font-medium text-gray-900 mb-4">
-										Your Information
-									</h4>
-
+								<div className=" pt-2">
 									<div className="space-y-4">
 										<FormInput
 											label="Full Name"
@@ -280,21 +319,85 @@ const Donation: React.FC = () => {
 											touched={touched.donorPhone}
 											disabled={isSubmitting}
 										/>
+										<FormSelector
+											label="State"
+											value={formData.state}
+											onChange={value => {
+												const selectedState =
+													statesData[Number(value)];
+												if (selectedState) {
+													const lgas = selectedState.lgas;
+													handleInputChange(
+														'state',
+														selectedState.name
+													);
+													handleInputChange(
+														'lga',
+														selectedState.name
+													);
+													handleInputChange(
+														'ward',
+														selectedState.name
+													);
+													setAvailableLGAs(lgas);
+													setAvailableWards([]);
+												}
+											}}
+											options={stateOptions}
+											placeholder="e.g. Lagos"
+											searchable={true}
+											error={errors.state}
+											touched={touched.lga}
+											required
+										/>
+										<FormSelector
+											label="Local Government Area"
+											value={formData.lga}
+											onChange={value => {
+												const selectedLga = lgaOptions[
+													Number(value)
+												].label as keyof typeof wardsData;
+												const stateWards =
+													wardsData[selectedLga].wards;
+												if (stateWards) {
+													setAvailableWards(stateWards);
+													handleInputChange('lga', selectedLga);
+												}
+											}}
+											options={lgaOptions}
+											placeholder="Select LGA"
+											searchable={true}
+											error={errors.lga}
+											touched={touched.lga}
+											required
+											disabled={!formData.state}
+										/>
+										<FormSelector
+											label="Ward"
+											value={formData.ward}
+											onChange={value => {
+												const selectedWardData =
+													wardOptions[Number(value)];
+												if (selectedWardData) {
+													handleInputChange(
+														'ward',
+														selectedWardData.name
+													);
+													handleInputChange(
+														'coordinates',
+														`${selectedWardData.latitude},${selectedWardData.longitude}`
+													);
+												}
+											}}
+											options={wardOptions || []}
+											placeholder="Select your ward (optional)"
+											disabled={!formData.lga}
+											error={errors.ward}
+											touched={touched.ward}
+											searchable={true}
+										/>
 									</div>
 								</div>
-
-								{/* Optional Message */}
-								<FormInput
-									label="Message (Optional)"
-									value={formData.message || ''}
-									onChange={value =>
-										handleInputChange('message', value)
-									}
-									placeholder="Leave a message of support..."
-									type="textarea"
-									rows={3}
-									disabled={isSubmitting}
-								/>
 
 								{/* Anonymous Option */}
 								<div className="flex items-center space-x-3">
@@ -348,23 +451,6 @@ const Donation: React.FC = () => {
 										</>
 									)}
 								</button>
-
-								{/* Security Notice */}
-								<div className="bg-green-50 rounded-lg p-4 border border-green-200">
-									<div className="flex items-start space-x-3">
-										<Shield className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-										<div>
-											<p className="text-sm text-green-800">
-												<span className="font-medium">
-													Secure Payment:
-												</span>{' '}
-												Your donation is processed securely through
-												Paystack. We never store your payment
-												information.
-											</p>
-										</div>
-									</div>
-								</div>
 							</form>
 						</div>
 					</div>
