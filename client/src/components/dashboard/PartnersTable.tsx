@@ -8,7 +8,6 @@ import {
 	Trash2,
 	Building2,
 	Globe,
-	Star,
 	RefreshCw,
 } from 'lucide-react';
 import {
@@ -31,40 +30,6 @@ import Pagination from '@/components/dashboard/Pagination';
 import { formatDate } from '@/utils/date.utils';
 import showToast from '@/utils/toast.util';
 import AddPartnerModal from './AddPartnerModal';
-
-const getPartnerStatusBadge = (status: Partner['status']) => {
-	const base =
-		'flex items-center px-2 py-1 rounded-sm text-xs font-medium border w-fit';
-
-	switch (status) {
-		case 'ACTIVE':
-			return (
-				<span
-					className={`${base} bg-green-50 text-green-700 border-green-400`}
-				>
-					Active
-				</span>
-			);
-		case 'INACTIVE':
-			return (
-				<span
-					className={`${base} bg-gray-50 text-gray-700 border-gray-400`}
-				>
-					Inactive
-				</span>
-			);
-		case 'PENDING':
-			return (
-				<span
-					className={`${base} bg-yellow-50 text-yellow-700 border-yellow-400`}
-				>
-					Pending
-				</span>
-			);
-		default:
-			return null;
-	}
-};
 
 const getPartnerTypeBadge = (type: Partner['type']) => {
 	const base =
