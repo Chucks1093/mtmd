@@ -4,8 +4,8 @@ function Hero() {
 	return (
 		<section className="md:min-h-screen min-h-auto  relative overflow-hidden  ">
 			<img
-				src="/images/box-lines.png"
-				className="absolute w-full h-full inset-0 opacity-70 pointer-events-none hidden"
+				src="/images/noise.png"
+				className="absolute w-ful objectl inset-0 opacity-70 invert pointer-events-none hidden "
 				alt=""
 			/>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 ">

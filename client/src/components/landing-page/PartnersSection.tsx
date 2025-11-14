@@ -85,7 +85,7 @@ const PartnersSection: React.FC = () => {
 				</h1>
 
 				{/* Scrolling Partners Container */}
-				<div className="relative overflow-hidden mt-7">
+				<div className="relative overflow-hidden mt-12">
 					{/* Gradient overlays for smooth fade */}
 					<div className="absolute left-0 top-0 w-20 h-full bg-gradient-to-r from-[#ecf1ed] to-transparent z-10 pointer-events-none" />
 					<div className="absolute right-0 top-0 w-20 h-full bg-gradient-to-l from-[#ecf1ed] to-transparent z-10 pointer-events-none" />
@@ -95,12 +95,12 @@ const PartnersSection: React.FC = () => {
 						{duplicatedPartners.map((partner, index) => (
 							<div
 								key={index}
-								className="flex-shrink-0 mx-2 md:mx-7 group cursor-pointer "
+								className="flex-shrink-0 mx-2 md:mx-5 group cursor-pointer "
 							>
 								<div className="relative p-4 rounded-xl transition-all duration-300">
 									{/* Partner Icon */}
 									<div className="text-center min-h-[5rem] flex flex-col justify-center items-center ">
-										<div className="flex justify-center items-center mb-2   py-6 bg-white gap-4 px-6 rounded-2xl">
+										<div className="flex justify-center items-center mb-2   py-4 bg-white gap-4 px-10 rounded-2xl">
 											<img
 												src={partner.icon}
 												alt={partner.name}
