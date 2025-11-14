@@ -5,10 +5,8 @@ function Header() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	const navLinks = [
-		{ name: 'ABOUT', href: '#about' },
-		{ name: 'SERVICES', href: '#services' },
-		{ name: 'REVIEWS', href: '#reviews' },
-		{ name: 'BLOGS', href: '#blogs' },
+		{ name: 'DONATE', href: '#donation' },
+		{ name: 'FAQ', href: '#faq' },
 	];
 
 	return (
@@ -17,17 +15,20 @@ function Header() {
 				<div className="flex items-center justify-between h-20">
 					{/* Logo */}
 					<a href="/" className="flex items-center gap-2">
-						<div className="w-10 h-10 bg-gray-800 rounded flex items-center justify-center">
+						<div className="w-10 h-10 bg-[#7fcd9050] rounded flex items-center justify-center">
 							<img
 								className="w-6 h-6 opacity-90"
 								src="/icons/logo.svg"
 								alt="Logo"
 							/>
 						</div>
+						<h1 className="font-bold font-grotesk text-2xl text-zinc-700">
+							MTMD
+						</h1>
 					</a>
 
 					{/* Center Navigation - Desktop */}
-					<nav className="hidden lg:flex items-center gap-8 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+					<nav className="hidden lg:flex items-center gap-8  ml-auto mr-14">
 						{navLinks.map(link => (
 							<a
 								key={link.name}
@@ -41,8 +42,8 @@ function Header() {
 
 					{/* Contact Button */}
 					<a href="#contact" className="hidden md:block">
-						<button className="flex py-2.5 px-4 justify-center items-center gap-1 bg-green-700 text-white hover:bg-gray-800 shadow-sm text-sm rounded-md">
-							CONTACT US
+						<button className="flex py-3 px-8 justify-center items-center gap-1 bg-green-600 text-white hover:bg-gray-800 shadow-sm text-sm rounded-md">
+							CREATE REPORT
 							<ArrowUpRight className="size-5 text-white transition-colors" />
 						</button>
 					</a>
@@ -72,9 +73,9 @@ function Header() {
 								</a>
 							))}
 							<div className="mt-4 pt-4 border-t border-gray-200">
-								<a href="#contact">
+								<a href="#report">
 									<button className="flex py-3.5 justify-center items-center gap-1 bg-gray-700 text-white hover:bg-blue-800 shadow-sm rounded-md">
-										CONTACT US
+										CREATE REPORT
 										<ArrowUpRight className="size-6 text-white transition-colors" />
 									</button>
 								</a>

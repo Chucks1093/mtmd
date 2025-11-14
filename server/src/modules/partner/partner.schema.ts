@@ -103,17 +103,8 @@ export const filterPartnersSchema = z.object({
    search: z.string().optional(), // Search by name, description, or contact person
 });
 
-export const getPublicPartnersSchema = z.object({
-   page: z.number().int().positive().default(1),
-   limit: z.number().int().positive().max(50).default(12),
-   type: PartnerTypeEnum.optional(),
-   featured: z.boolean().optional(),
-   state: z.string().optional(),
-});
-
 export type PartnerStatus = z.infer<typeof PartnerStatusEnum>;
 export type PartnerType = z.infer<typeof PartnerTypeEnum>;
 export type CreatePartner = z.infer<typeof createPartnerSchema>;
 export type UpdatePartner = z.infer<typeof updatePartnerSchema>;
 export type FilterPartners = z.infer<typeof filterPartnersSchema>;
-export type GetPublicPartners = z.infer<typeof getPublicPartnersSchema>;

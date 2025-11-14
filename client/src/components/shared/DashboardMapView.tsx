@@ -191,7 +191,7 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 						onClick={() => setActiveView('map')}
 						className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
 							activeView === 'map'
-								? 'bg-white shadow-sm text-blue-600'
+								? 'bg-white shadow-sm text-green-600'
 								: 'text-gray-600 hover:text-gray-900'
 						}`}
 					>
@@ -202,7 +202,7 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 						onClick={() => setActiveView('statistics')}
 						className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
 							activeView === 'statistics'
-								? 'bg-white shadow-sm text-blue-600'
+								? 'bg-white shadow-sm text-green-600'
 								: 'text-gray-600 hover:text-gray-900'
 						}`}
 					>
@@ -221,10 +221,10 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 						value={numberWithCommas(totalReports)}
 						title="Total Reports"
 						status="verified"
-						iconColor="bg-blue-100 border border-blue-400"
+						iconColor="bg-green-100 border border-green-400"
 						hideInfo
 						className="rounded-md "
-						icon={<MapIcon className="size-5 text-blue-400" />}
+						icon={<MapIcon className="size-5 text-green-400" />}
 					/>
 					<FinancialMetricCard
 						value={numberWithCommas(pendingReports)}
@@ -305,7 +305,7 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 						{loading ? (
 							<div className="flex items-center justify-center h-96 bg-white rounded-lg border">
 								<div className="text-center">
-									<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+									<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
 									<span className="text-gray-600">
 										Loading map data...
 									</span>
@@ -343,7 +343,7 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 												{state.state}
 											</span>
 										</div>
-										<span className="text-sm font-bold text-blue-600">
+										<span className="text-sm font-bold text-green-600">
 											{state.count}
 										</span>
 									</div>
@@ -387,18 +387,18 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 							{/* Selected State Details */}
 							<div className="bg-white rounded-lg border p-6 h-fit">
 								<div className="flex items-center gap-2 mb-6">
-									<MapPin className="w-5 h-5 text-blue-600" />
+									<MapPin className="w-5 h-5 text-green-600" />
 									<h3 className="text-lg font-semibold text-gray-900">
 										{selectedState}
 									</h3>
 								</div>
 
 								<div className="grid grid-cols-2 gap-4 mb-6">
-									<div className="bg-blue-50 rounded-lg p-4 text-center">
-										<div className="text-3xl font-bold text-blue-600 mb-1">
+									<div className="bg-green-50 rounded-lg p-4 text-center">
+										<div className="text-3xl font-bold text-green-600 mb-1">
 											{stateStats.total}
 										</div>
-										<div className="text-sm text-blue-700 font-medium">
+										<div className="text-sm text-green-700 font-medium">
 											Total Reports
 										</div>
 									</div>

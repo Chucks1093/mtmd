@@ -315,7 +315,10 @@ const ReportStats = () => {
 	}
 
 	return (
-		<section className="max-w-7xl mx-auto flex flex-col items-center my-[4rem] px-4">
+		<section
+			className="max-w-7xl mx-auto flex flex-col items-center my-[4rem] px-4"
+			id="report"
+		>
 			{/* Header */}
 			<div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-600 rounded-full text-sm font-medium ">
 				<Map className="w-4 h-4" />
@@ -362,7 +365,7 @@ const ReportStats = () => {
 						colorScheme="green"
 						onStateClick={handleStateClick}
 						geoDataUrl="https://mtmd.t3.storage.dev/data/nigeria_state_boundaries.json"
-						className="w-full mt-4"
+						className="w-full max-w-[57rem]  mt-4 mx-auto"
 					/>
 				</div>
 			) : (

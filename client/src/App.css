@@ -5,3 +5,51 @@ button {
 .check {
 	border: 1px solid red;
 }
+
+/* For photos with better quality */
+.photo-white {
+	filter: grayscale(100%) contrast(150%) brightness(250%);
+}
+
+/* For logos */
+.logo-white {
+	filter: grayscale(100%) contrast(200%) brightness(300%) saturate(0%)
+		invert(100%);
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+@keyframes scroll {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-200%);
+	}
+}
+
+.animate-scroll {
+	animation: scroll 35s linear infinite;
+}
+
+.animate-scroll:hover {
+	animation-play-state: paused;
+}
+
+/* Responsive speed */
+@media (max-width: 768px) {
+	@keyframes scroll {
+		0% {
+			transform: translateX(0);
+		}
+		100% {
+			transform: translateX(-300%);
+		}
+	}
+
+	.animate-scroll {
+		animation: scroll 20s linear infinite;
+	}
+}

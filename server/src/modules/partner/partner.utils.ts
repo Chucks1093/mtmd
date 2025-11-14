@@ -1,11 +1,6 @@
 import { PartnerStatus, PartnerType } from '@prisma/client';
 import { prisma } from '../../utils/prisma.utils';
-import {
-   CreatePartner,
-   UpdatePartner,
-   FilterPartners,
-   GetPublicPartners,
-} from './partner.schema';
+import { CreatePartner, UpdatePartner, FilterPartners } from './partner.schema';
 import crypto from 'crypto';
 
 /**
@@ -127,25 +122,15 @@ export async function getPaginatedPartnersRepository(filters: FilterPartners) {
 /**
  * Get public partners (only active partners for public display)
  */
-export async function getPublicPartnersRepository(filters: GetPublicPartners) {
-   const { page, limit, type, featured, state } = filters;
-
+export async function getPublicPartnersRepository() {
    const whereClause: any = {
       status: 'ACTIVE', // Only show active partners to public
    };
 
-   if (type) whereClause.type = type;
-   if (featured !== undefined) whereClause.featured = featured;
-   if (state) whereClause.state = state;
-
    const total = await prisma.partner.count({ where: whereClause });
-   const skip = (page - 1) * limit;
-   const totalPages = Math.ceil(total / limit);
 
    const partners = await prisma.partner.findMany({
       where: whereClause,
-      skip,
-      take: limit,
       orderBy: [
          { featured: 'desc' },
          { displayOrder: 'asc' },
@@ -154,20 +139,9 @@ export async function getPublicPartnersRepository(filters: GetPublicPartners) {
       select: {
          id: true,
          name: true,
-         description: true,
          type: true,
          logo: true,
          website: true,
-         email: true,
-         phone: true,
-         contactPerson: true,
-         contactPersonRole: true,
-         state: true,
-         lga: true,
-         address: true,
-         socialMedia: true,
-         partnershipDetails: true,
-         featured: true,
          displayOrder: true,
          createdAt: true,
       },
@@ -176,9 +150,6 @@ export async function getPublicPartnersRepository(filters: GetPublicPartners) {
    return {
       partners,
       total,
-      page,
-      limit,
-      totalPages,
    };
 }
 

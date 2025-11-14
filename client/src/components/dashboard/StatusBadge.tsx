@@ -60,7 +60,7 @@ export const renderUserAvatar = (user: { image?: string; name: string }) => {
 	return (
 		<Avatar className="h-8 w-8">
 			<AvatarImage src={user.image} alt={user.name} />
-			<AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-medium uppercase">
+			<AvatarFallback className="bg-green-100 text-green-600 text-sm font-medium uppercase">
 				{getInitials(user.name)}
 			</AvatarFallback>
 		</Avatar>

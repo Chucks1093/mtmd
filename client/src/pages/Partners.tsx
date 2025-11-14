@@ -75,10 +75,10 @@ function Partners() {
 				{isAdmin && (
 					<button
 						onClick={handleAddPartner}
-						className={`bg-blue-600 w-fit hover:bg-blue-700 active:bg-blue-800
-						disabled:bg-blue-300 disabled:cursor-not-allowed
+						className={`bg-green-600 w-fit hover:bg-green-700 active:bg-green-800
+						disabled:bg-green-300 disabled:cursor-not-allowed
 						text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 
-						focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
+						focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 
 						flex items-center gap-2 justify-center`}
 					>
 						<Plus />

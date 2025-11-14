@@ -97,7 +97,7 @@ const SideBarItem: React.FC<SideBarItemProps> = ({
 			onClick={onNavigate}
 			className={({ isActive }) =>
 				`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
-					isActive ? 'bg-blue-50' : 'text-gray-700 hover:bg-gray-100'
+					isActive ? 'bg-green-50' : 'text-gray-700 hover:bg-gray-100'
 				}`
 			}
 		>
@@ -106,14 +106,14 @@ const SideBarItem: React.FC<SideBarItemProps> = ({
 					<Icon
 						className={`w-4 h-4 ${
 							isActive
-								? 'text-blue-500'
+								? 'text-green-500'
 								: 'text-gray-600 group-hover:text-gray-800'
 						}`}
 					/>
 					<span
 						className={`text-sm font-medium ${
 							isActive
-								? 'text-blue-500'
+								? 'text-green-500'
 								: 'text-gray-700 group-hover:text-gray-900'
 						}`}
 					>
@@ -169,14 +169,17 @@ const SideBar: React.FC<SideBarProps> = ({ className, onNavigate }) => {
 			)}
 		>
 			{/* Brand Header */}
-			<div className="h-16 flex items-center gap-3 px-4 border-b border-gray-200">
-				<div className="w-10 h-10 bg-gray-800 rounded flex items-center justify-center">
+			<div className="h-16 flex items-center gap-2 px-4 border-b border-gray-200">
+				<div className="w-10 h-10 bg-[#7fcd9050] rounded flex items-center justify-center">
 					<img
 						className="w-6 h-6 opacity-90"
 						src="/icons/logo.svg"
 						alt="Logo"
 					/>
 				</div>
+				<h1 className="font-bold font-grotesk text-2xl text-zinc-700">
+					MTMD
+				</h1>
 			</div>
 
 			{/* Navigation Content */}

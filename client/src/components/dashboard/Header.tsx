@@ -114,7 +114,7 @@ const Header: React.FC<HeaderProps> = ({
 
 							{/* Logo - Hidden on mobile when search is active */}
 							<div className="flex items-center gap-3 lg:hidden">
-								<div className="w-10 h-10 bg-gray-800 rounded flex items-center justify-center">
+								<div className="w-10 h-10 bg-green-700 rounded flex items-center justify-center">
 									<img
 										className="w-6 h-6 opacity-90"
 										src="/icons/logo.svg"

@@ -4,7 +4,6 @@ import {
    updatePartnerSchema,
    getPartnerSchema,
    filterPartnersSchema,
-   getPublicPartnersSchema,
    PartnerType,
 } from './partner.schema';
 import {
@@ -130,20 +129,7 @@ export const getPublicPartners = async (
    next: NextFunction
 ): Promise<void> => {
    try {
-      const filter = getPublicPartnersSchema.parse({
-         page: req.query.page ? parseInt(req.query.page as string) : 1,
-         limit: req.query.limit ? parseInt(req.query.limit as string) : 12,
-         type: req.query.type as string,
-         featured:
-            req.query.featured === 'true'
-               ? true
-               : req.query.featured === 'false'
-                 ? false
-                 : undefined,
-         state: req.query.state as string,
-      });
-
-      const paginatedData = await getPublicPartnersRepository(filter);
+      const paginatedData = await getPublicPartnersRepository();
 
       res.status(200).json({
          success: true,
