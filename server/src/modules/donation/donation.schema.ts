@@ -23,6 +23,8 @@ export const createDonationSchema = z.object({
    isAnonymous: z.boolean().default(false),
    state: z.string().optional(),
    lga: z.string().optional(),
+   cooridnates: z.string().optional(),
+   ward: z.string().optional(),
 });
 
 export const initializePaymentSchema = z.object({

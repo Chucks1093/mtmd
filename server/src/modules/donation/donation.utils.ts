@@ -273,7 +273,7 @@ export async function getPaginatedDonationsRepository(
    // Convert amounts back from kobo to naira for display
    const formattedDonations = donations.map(donation => ({
       ...donation,
-      amount: donation.amount / 100,
+      amount: donation.amount,
    }));
 
    return {
@@ -302,7 +302,7 @@ export async function getDonationStatsRepository(filters: GetDonationStats) {
       where: { status: 'SUCCESS' },
       _sum: { amount: true },
    });
-   const totalAmountRaised = (totalAmountResult._sum.amount || 0) / 100;
+   const totalAmountRaised = totalAmountResult._sum.amount || 0;
 
    // Success rate
    const allDonations = await prisma.donation.count();
@@ -323,7 +323,7 @@ export async function getDonationStatsRepository(filters: GetDonationStats) {
    const formattedByStatus = donationsByStatus.map(item => ({
       status: item.status,
       count: item._count.id,
-      totalAmount: (item._sum.amount || 0) / 100,
+      totalAmount: item._sum.amount || 0,
    }));
 
    // Donations by type
@@ -337,7 +337,7 @@ export async function getDonationStatsRepository(filters: GetDonationStats) {
    const formattedByType = donationsByType.map(item => ({
       type: item.type,
       count: item._count.id,
-      totalAmount: (item._sum.amount || 0) / 100,
+      totalAmount: item._sum.amount || 0,
    }));
 
    // Recent donations
@@ -401,7 +401,7 @@ export async function getPublicDonationStatsRepository() {
       _sum: { amount: true },
    });
 
-   const totalAmountRaised = (totalAmountResult._sum.amount || 0) / 100;
+   const totalAmountRaised = totalAmountResult._sum.amount || 0;
 
    // Get unique donor count by grouping by donorEmail
    const uniqueDonors = await prisma.donation.groupBy({

@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router';
-import { CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import donationService, {
 	type DonationSummary,
 } from '@/services/donation.service';
-import showToast from '@/utils/toast.util';
 
 const DonationCallback: React.FC = () => {
 	const [searchParams] = useSearchParams();
@@ -20,7 +18,6 @@ const DonationCallback: React.FC = () => {
 			const reference = searchParams.get('reference');
 			const paystackStatus = searchParams.get('trxref');
 
-			// Check if payment was cancelled
 			if (searchParams.get('cancelled') === 'true') {
 				setStatus('cancelled');
 				return;
@@ -28,7 +25,6 @@ const DonationCallback: React.FC = () => {
 
 			if (!reference && !paystackStatus) {
 				setStatus('failed');
-				showToast.error('No payment reference found');
 				return;
 			}
 
@@ -37,168 +33,235 @@ const DonationCallback: React.FC = () => {
 				const result = await donationService.verifyPayment({
 					reference: paymentRef!,
 				});
-				console.log(result);
 
 				if (result.success) {
 					setStatus('success');
 					setDonationDetails(result.data.donation);
-					showToast.success('Thank you! Your donation was successful.');
 				} else {
 					setStatus('failed');
-					showToast.error('Payment verification failed');
 				}
 			} catch (error) {
 				console.error('Payment verification error:', error);
 				setStatus('failed');
-				showToast.error('Failed to verify payment');
 			}
 		};
 
 		verifyPayment();
 	}, [searchParams]);
 
-	const handleContinue = () => {
-		navigate('/'); // Redirect to home page or wherever appropriate
-	};
-
-	const renderContent = () => {
-		switch (status) {
-			case 'loading':
-				return (
-					<div className="text-center">
-						<RefreshCw className="w-16 h-16 text-blue-600 mx-auto mb-6 animate-spin" />
-						<h1 className="text-2xl font-bold text-gray-900 mb-4">
-							Verifying Your Payment
-						</h1>
-						<p className="text-gray-600">
-							Please wait while we confirm your donation...
-						</p>
+	if (status === 'loading') {
+		return (
+			<div className="min-h-screen bg-white flex items-center justify-center">
+				<div className="text-center max-w-sm">
+					{/* Custom loading animation */}
+					<div className="relative mb-8">
+						<div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+						<div
+							className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-blue-300 rounded-full animate-spin mx-auto"
+							style={{
+								animationDirection: 'reverse',
+								animationDuration: '1.5s',
+							}}
+						></div>
 					</div>
-				);
-
-			case 'success':
-				return (
-					<div className="text-center">
-						<CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-6" />
-						<h1 className="text-2xl font-bold text-gray-900 mb-4">
-							Donation Successful!
-						</h1>
-						<p className="text-gray-600 mb-6">
-							Thank you for supporting the National Toilet Campaign. Your
-							contribution will make a real difference in improving
-							sanitation across Nigeria.
-						</p>
-
-						{donationDetails && (
-							<div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 max-w-md mx-auto">
-								<h3 className="font-semibold text-green-900 mb-3">
-									Donation Details
-								</h3>
-								<div className="space-y-2 text-sm">
-									<div className="flex justify-between">
-										<span className="text-green-700">Amount:</span>
-										<span className="font-medium">
-											₦{donationDetails.amount.toLocaleString()}
-										</span>
-									</div>
-									<div className="flex justify-between">
-										<span className="text-green-700">Reference:</span>
-										<span className="font-medium">
-											{donationDetails.reference.substring(0, 17)}
-										</span>
-									</div>
-									<div className="flex justify-between">
-										<span className="text-green-700">Date:</span>
-										<span className="font-medium">
-											{new Date().toLocaleDateString()}
-										</span>
-									</div>
-								</div>
-							</div>
-						)}
-
-						<div className="space-y-3">
-							<button
-								onClick={handleContinue}
-								className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-							>
-								Continue to Homepage
-							</button>
-							<p className="text-sm text-gray-500">
-								A receipt has been sent to your email address.
-							</p>
-						</div>
-					</div>
-				);
-
-			case 'failed':
-				return (
-					<div className="text-center">
-						<XCircle className="w-16 h-16 text-red-600 mx-auto mb-6" />
-						<h1 className="text-2xl font-bold text-gray-900 mb-4">
-							Payment Failed
-						</h1>
-						<p className="text-gray-600 mb-6">
-							Unfortunately, your payment could not be processed. Please
-							try again or contact support if the problem persists.
-						</p>
-
-						<div className="space-y-3">
-							<button
-								onClick={() => navigate('/donation')}
-								className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-							>
-								Try Again
-							</button>
-							<button
-								onClick={handleContinue}
-								className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-							>
-								Back to Homepage
-							</button>
-						</div>
-					</div>
-				);
-
-			case 'cancelled':
-				return (
-					<div className="text-center">
-						<XCircle className="w-16 h-16 text-yellow-600 mx-auto mb-6" />
-						<h1 className="text-2xl font-bold text-gray-900 mb-4">
-							Payment Cancelled
-						</h1>
-						<p className="text-gray-600 mb-6">
-							You cancelled the payment process. No charges have been
-							made to your account.
-						</p>
-
-						<div className="space-y-3">
-							<button
-								onClick={() => navigate('/donation')}
-								className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-							>
-								Try Again
-							</button>
-							<button
-								onClick={handleContinue}
-								className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-							>
-								Back to Homepage
-							</button>
-						</div>
-					</div>
-				);
-
-			default:
-				return null;
-		}
-	};
+					<p className="text-gray-600 text-lg">
+						Confirming your donation...
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
-		<div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-			<div className="max-w-md w-full">
-				<div className="bg-white rounded-xl shadow-lg p-8">
-					{renderContent()}
+		<div className="min-h-screen bg-gray-50 py-16">
+			<div className="max-w-2xl mx-auto px-4">
+				{/* Header */}
+				<div className="text-center mb-12">
+					<h1 className="text-3xl font-light font-grotesque text-gray-900 mb-2">
+						National Toilet Campaign
+					</h1>
+				</div>
+
+				{/* Success State */}
+				{status === 'success' && (
+					<div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+						{/* Success indicator */}
+						<div className="bg-gradient-to-r from-green-500 to-emerald-600 h-1"></div>
+
+						<div className="p-12 text-center">
+							{/* Custom success icon */}
+							<div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
+								<svg
+									className="w-10 h-10 text-green-600"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth="2"
+										d="M5 13l4 4L19 7"
+									></path>
+								</svg>
+							</div>
+
+							<h2 className="text-2xl font-light text-gray-900 mb-4">
+								Thank you for your donation
+							</h2>
+
+							<p className="text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto">
+								Your contribution will help improve sanitation
+								facilities across Nigeria. Together, we're building
+								healthier communities.
+							</p>
+
+							{/* Donation details - minimal card */}
+							{donationDetails && (
+								<div className="bg-gray-50 rounded-md p-6 mb-8 max-w-sm mx-auto">
+									<div className="space-y-3 text-sm">
+										<div className="flex justify-between items-center">
+											<span className="text-gray-500">Amount</span>
+											<span className="font-medium text-gray-900">
+												₦{donationDetails.amount.toLocaleString()}
+											</span>
+										</div>
+										<div className="flex justify-between items-center">
+											<span className="text-gray-500">
+												Reference
+											</span>
+											<span className="font-mono text-xs text-gray-700">
+												{donationDetails.reference.slice(-12)}
+											</span>
+										</div>
+									</div>
+								</div>
+							)}
+
+							{/* Actions */}
+							<div className="space-y-4">
+								<button
+									onClick={() => navigate('/')}
+									className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md text-sm font-medium transition-colors"
+								>
+									Return to Campaign
+								</button>
+
+								<p className="text-xs text-gray-500">
+									Receipt sent to your email • Tax deductible
+								</p>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* Failed State */}
+				{status === 'failed' && (
+					<div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+						<div className="bg-gradient-to-r from-red-500 to-rose-600 h-1"></div>
+
+						<div className="p-12 text-center">
+							<div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-8">
+								<svg
+									className="w-10 h-10 text-red-600"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth="2"
+										d="M6 18L18 6M6 6l12 12"
+									></path>
+								</svg>
+							</div>
+
+							<h2 className="text-2xl font-light text-gray-900 mb-4">
+								Payment unsuccessful
+							</h2>
+
+							<p className="text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto">
+								We couldn't process your donation. Please try again or
+								contact us if you continue having issues.
+							</p>
+
+							<div className="space-y-3">
+								<button
+									onClick={() => navigate('/#donate')}
+									className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md text-sm font-medium transition-colors"
+								>
+									Try Again
+								</button>
+								<div>
+									<button
+										onClick={() => navigate('/')}
+										className="text-gray-500 hover:text-gray-700 text-sm underline"
+									>
+										Back to Homepage
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* Cancelled State */}
+				{status === 'cancelled' && (
+					<div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+						<div className="bg-gradient-to-r from-gray-400 to-gray-500 h-1"></div>
+
+						<div className="p-12 text-center">
+							<div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-8">
+								<svg
+									className="w-10 h-10 text-gray-600"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth="2"
+										d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+									></path>
+								</svg>
+							</div>
+
+							<h2 className="text-2xl font-light text-gray-900 mb-4">
+								Donation cancelled
+							</h2>
+
+							<p className="text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto">
+								No payment was processed. You can try again anytime to
+								support our mission.
+							</p>
+
+							<div className="space-y-3">
+								<button
+									onClick={() => navigate('/#donate')}
+									className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md text-sm font-medium transition-colors"
+								>
+									Donate Now
+								</button>
+								<div>
+									<button
+										onClick={() => navigate('/')}
+										className="text-gray-500 hover:text-gray-700 text-sm underline"
+									>
+										Back to Homepage
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* Footer note */}
+				<div className="text-center mt-12">
+					<p className="text-gray-400 text-sm">
+						Payments secured by Paystack • Questions? Contact support
+					</p>
 				</div>
 			</div>
 		</div>

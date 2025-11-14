@@ -1,4 +1,4 @@
-import DonationsTable from '@/components/dashboard/DoantionsTable';
+import DonationsTable from '@/components/dashboard/DonationsTable';
 import FinancialMetricCard, {
 	FinancialMetricCardSkeletons,
 } from '@/components/dashboard/FinancialMetricsCard';
@@ -100,7 +100,7 @@ function Donations() {
 						value={formatCurrency(financialData.totalAmountRaised)}
 						title="Total Raised"
 						status="verified"
-						iconColor="bg-green-100"
+						iconColor="bg-green-100 border border-green-400"
 						hideInfo
 						className="rounded-md"
 						icon={<DollarSign className="size-5 text-green-400" />}
@@ -109,7 +109,7 @@ function Donations() {
 						value={numberWithCommas(financialData.totalDonors)}
 						title="Total Donors"
 						status="verified"
-						iconColor="bg-blue-100"
+						iconColor="bg-blue-100 border border-blue-400"
 						hideInfo
 						className="rounded-md"
 						icon={<Users className="size-5 text-blue-400" />}
@@ -118,7 +118,7 @@ function Donations() {
 						value={numberWithCommas(financialData.totalDonations)}
 						title="Total Donations"
 						status="verified"
-						iconColor="bg-purple-100"
+						iconColor="bg-purple-100 border border-purple-400"
 						hideInfo
 						className="rounded-md"
 						icon={<TrendingUp className="size-5 text-purple-400" />}

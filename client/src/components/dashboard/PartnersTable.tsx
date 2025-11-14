@@ -68,7 +68,7 @@ const getPartnerStatusBadge = (status: Partner['status']) => {
 
 const getPartnerTypeBadge = (type: Partner['type']) => {
 	const base =
-		'flex items-center px-2 py-1 rounded-sm text-xs font-medium border w-fit';
+		'flex items-center size-7 justify-center rounded-full text-lg font-medium border font-bold ';
 
 	const configs = {
 		CORPORATE: {
@@ -102,7 +102,11 @@ const getPartnerTypeBadge = (type: Partner['type']) => {
 	};
 
 	const config = configs[type];
-	return <span className={`${base} ${config.color}`}>{config.label}</span>;
+	return (
+		<span className={`${base} ${config.color} font-grotesque`}>
+			{config.label.charAt(0)}
+		</span>
+	);
 };
 
 interface PartnersTableProps {
@@ -450,14 +454,14 @@ const PartnersTable: React.FC<PartnersTableProps> = ({ onStatsUpdate }) => {
 								>
 									{/* Partner Header */}
 									<div className="flex items-start justify-between mb-3">
-										<div className="flex items-center gap-3 flex-1 min-w-0">
+										<div className=" gap-3 flex-1 min-w-0">
 											{/* Partner Logo */}
-											<div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+											<div className="flex-shrink-0 size-16 mx-auto bg-gray-100 rounded-lg flex items-center justify-center  mt-2 relative">
 												{partner.logo ? (
 													<img
 														src={partner.logo}
 														alt={`${partner.name} logo`}
-														className="w-full h-full object-cover"
+														className="w-full h-full object-cover rounded-xl"
 														onError={e => {
 															e.currentTarget.style.display =
 																'none';
@@ -472,21 +476,32 @@ const PartnersTable: React.FC<PartnersTableProps> = ({ onStatsUpdate }) => {
 														partner.logo ? 'hidden' : ''
 													}`}
 												/>
+												<div className="absolute -bottom-2 -right-2">
+													{getPartnerTypeBadge(partner.type)}
+												</div>
 											</div>
 
 											{/* Partner Info */}
-											<div className="flex-1 min-w-0">
-												<div className="flex items-center gap-2 mb-1">
-													<h3 className="font-semibold text-gray-900 truncate text-sm">
-														{partner.name}
-													</h3>
-													{partner.featured && (
-														<Star className="w-4 h-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-													)}
-												</div>
-												<p className="text-xs text-gray-500 line-clamp-2">
-													{partner.description}
-												</p>
+											<div className="flex-1 min-w-0 mt-2">
+												<h3 className="font-semibold text-gray-900 truncate text-lg font-grotesque text-center">
+													{partner.name}
+												</h3>
+												{partner.website && (
+													<div className="flex items-center justify-center text-gray-500 underline gap-1 text-xs">
+														<Globe className="w-3 h-3" />
+														<a
+															href={partner.website}
+															target="_blank"
+															rel="noopener noreferrer"
+															className="hover:text-blue-600 truncate"
+														>
+															{partner.website.replace(
+																/^https?:\/\//,
+																''
+															)}
+														</a>
+													</div>
+												)}
 											</div>
 										</div>
 
@@ -543,45 +558,8 @@ const PartnersTable: React.FC<PartnersTableProps> = ({ onStatsUpdate }) => {
 									</div>
 
 									{/* Partner Details */}
-									<div className="space-y-2">
-										<div className="flex items-center justify-between">
-											{getPartnerTypeBadge(partner.type)}
-											{getPartnerStatusBadge(partner.status)}
-										</div>
-
-										{partner.website && (
-											<div className="flex items-center gap-2 text-xs text-gray-500">
-												<Globe className="w-3 h-3" />
-												<a
-													href={partner.website}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="hover:text-blue-600 truncate"
-												>
-													{partner.website.replace(
-														/^https?:\/\//,
-														''
-													)}
-												</a>
-											</div>
-										)}
-
-										{partner.contactPerson && (
-											<div className="text-xs text-gray-500">
-												<span className="font-medium">
-													Contact:
-												</span>{' '}
-												{partner.contactPerson}
-												{partner.contactPersonRole && (
-													<span>
-														{' '}
-														({partner.contactPersonRole})
-													</span>
-												)}
-											</div>
-										)}
-
-										<div className="text-xs text-gray-400 pt-2 border-t">
+									<div className="space-y-2 mt-7 ">
+										<div className="text-xs text-gray-400 pt-4 border-t flex items-center justify-between">
 											Added {formatDate(partner.createdAt)}
 										</div>
 									</div>

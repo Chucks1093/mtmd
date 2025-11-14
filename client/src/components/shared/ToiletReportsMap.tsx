@@ -104,7 +104,6 @@ const ToiletReportsMap: React.FC<ToiletReportsMapProps> = ({
 				setMapLoading(true);
 				setMapError(null);
 
-				console.log('Loading map data from:', geoDataUrl);
 				const response = await fetch(geoDataUrl);
 				if (!response.ok) {
 					throw new Error(

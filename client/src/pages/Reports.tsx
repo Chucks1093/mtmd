@@ -88,7 +88,7 @@ text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 focus
 						value={numberWithCommas(financialData.totalReports)}
 						title="Total Reports"
 						status="verified"
-						iconColor="bg-blue-100"
+						iconColor="bg-blue-100 border border-blue-400"
 						hideInfo
 						className=" rounded-md"
 						icon={<Clipboard className="size-5 text-blue-400" />}
@@ -97,7 +97,7 @@ text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 focus
 						value={numberWithCommas(financialData.pendingReports)}
 						title="Pending Review"
 						status="verified"
-						iconColor="bg-orange-100"
+						iconColor="bg-orange-100 border border-orange-400"
 						hideInfo
 						className=" rounded-md"
 						icon={<Clock className="size-5 text-orange-400" />}
@@ -106,7 +106,7 @@ text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 focus
 						value={numberWithCommas(financialData.approvedReports)}
 						title="Approved Reports"
 						status="verified"
-						iconColor="bg-green-100"
+						iconColor="bg-green-100 border border-green-400"
 						hideInfo
 						className=" rounded-md"
 						icon={<CheckCircle className="size-5 text-green-400" />}
@@ -115,7 +115,7 @@ text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 focus
 						value={numberWithCommas(financialData.rejectedReports)}
 						title="Rejected Reports"
 						status="verified"
-						iconColor="bg-red-100"
+						iconColor="bg-red-100 border border-red-400"
 						hideInfo
 						className=" rounded-md"
 						icon={<XCircle className="size-5 text-red-400" />}

@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Map as MapIcon, Filter, MapPin } from 'lucide-react';
+import { BarChart3, Map as MapIcon, MapPin } from 'lucide-react';
 import ToiletReportsMap from './ToiletReportsMap';
+import FormSelector from './FormSelector';
+import FinancialMetricCard, {
+	FinancialMetricCardSkeletons,
+} from '@/components/dashboard/FinancialMetricsCard';
+import StepSummary from '../dashboard/StepSummary';
+import { numberWithCommas } from '@/lib/utils';
 import {
 	processToiletReportsForMap,
 	filterReportsForMap,
@@ -9,8 +15,10 @@ import {
 	getConditionDistribution,
 	type ToiletReport,
 	type StateStatistics,
+	NIGERIAN_STATES,
 } from './mapDataUtils';
 import reportService from '@/services/report.service';
+import { motion } from 'framer-motion';
 
 interface DashboardMapViewProps {
 	className?: string;
@@ -28,26 +36,48 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 
 	// Filter states
 	const [filters, setFilters] = useState({
-		status: '' as 'APPROVED' | 'PENDING' | 'REJECTED' | '',
-		condition: '' as
-			| 'EXCELLENT'
-			| 'GOOD'
-			| 'FAIR'
-			| 'POOR'
-			| 'VERY_POOR'
-			| '',
-		facilityType: '' as
-			| 'PUBLIC'
-			| 'PRIVATE'
-			| 'SCHOOL'
-			| 'HOSPITAL'
-			| 'MARKET'
-			| 'OFFICE'
-			| 'RESIDENTIAL'
-			| 'OTHER'
-			| '',
-		dateRange: { start: '', end: '' },
+		status: '',
+		condition: '',
+		facilityType: '',
+		state: '',
 	});
+
+	// Dropdown options
+	const statusOptions = [
+		{ value: '', label: 'All Status' },
+		{ value: 'APPROVED', label: 'Approved' },
+		{ value: 'PENDING', label: 'Pending' },
+		{ value: 'REJECTED', label: 'Rejected' },
+	];
+
+	const conditionOptions = [
+		{ value: '', label: 'All Conditions' },
+		{ value: 'EXCELLENT', label: 'Excellent' },
+		{ value: 'GOOD', label: 'Good' },
+		{ value: 'FAIR', label: 'Fair' },
+		{ value: 'POOR', label: 'Poor' },
+		{ value: 'VERY_POOR', label: 'Very Poor' },
+	];
+
+	const facilityTypeOptions = [
+		{ value: '', label: 'All Facilities' },
+		{ value: 'PUBLIC', label: 'Public' },
+		{ value: 'PRIVATE', label: 'Private' },
+		{ value: 'SCHOOL', label: 'School' },
+		{ value: 'HOSPITAL', label: 'Hospital' },
+		{ value: 'MARKET', label: 'Market' },
+		{ value: 'OFFICE', label: 'Office' },
+		{ value: 'RESIDENTIAL', label: 'Residential' },
+		{ value: 'OTHER', label: 'Other' },
+	];
+
+	const stateOptions = [
+		{ value: '', label: 'All States' },
+		...NIGERIAN_STATES.map(state => ({
+			value: state,
+			label: state,
+		})),
+	];
 
 	// Load reports data
 	useEffect(() => {
@@ -70,13 +100,29 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 	// Apply filters
 	useEffect(() => {
 		const filtered = filterReportsForMap(reports, {
-			status: filters.status || undefined,
-			condition: filters.condition || undefined,
-			facilityType: filters.facilityType || undefined,
-			dateRange:
-				filters.dateRange.start && filters.dateRange.end
-					? filters.dateRange
-					: undefined,
+			status: filters.status as
+				| 'APPROVED'
+				| 'PENDING'
+				| 'REJECTED'
+				| undefined,
+			condition: filters.condition as
+				| 'EXCELLENT'
+				| 'GOOD'
+				| 'FAIR'
+				| 'POOR'
+				| 'VERY_POOR'
+				| undefined,
+			facilityType: filters.facilityType as
+				| 'PUBLIC'
+				| 'PRIVATE'
+				| 'SCHOOL'
+				| 'HOSPITAL'
+				| 'MARKET'
+				| 'OFFICE'
+				| 'RESIDENTIAL'
+				| 'OTHER'
+				| undefined,
+			state: filters.state || undefined,
 		});
 		setFilteredReports(filtered);
 	}, [reports, filters]);
@@ -104,43 +150,36 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 	};
 
 	// Handle filter changes
-	const updateFilter = (key: string, value: string | number) => {
+	const updateFilter = (key: string, value: string) => {
 		setFilters(prev => ({
 			...prev,
 			[key]: value,
 		}));
 	};
 
-	// Clear all filters
-	const clearFilters = () => {
-		setFilters({
-			status: '',
-			condition: '',
-			facilityType: '',
-			dateRange: { start: '', end: '' },
-		});
-		setSelectedState(null);
-	};
-
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center h-96">
-				<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-				<span className="ml-3 text-gray-600">
-					Loading toilet reports...
-				</span>
-			</div>
-		);
-	}
+	// Calculate metrics
+	const totalReports = filteredReports.length;
+	const approvedReports = filteredReports.filter(
+		r => r.status === 'APPROVED'
+	).length;
+	const pendingReports = filteredReports.filter(
+		r => r.status === 'PENDING'
+	).length;
+	const rejectedReports = filteredReports.filter(
+		r => r.status === 'REJECTED'
+	).length;
 
 	return (
-		<div className={`space-y-6 ${className}`}>
+		<motion.div
+			className={`max-w-7xl overflow-x-hidden mx-auto p-4 pt-5 space-y-6 ${className}`}
+			initial={{ opacity: 0, y: 30 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.6, ease: 'easeOut' }}
+		>
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-2xl font-bold text-gray-900">
-						Toilet Reports Map View
-					</h1>
+					<h1 className="text-2xl font-jakarta">Toilet Reports Map</h1>
 					<p className="text-gray-600 mt-1">
 						Visualizing toilet condition reports across Nigeria
 					</p>
@@ -173,109 +212,88 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 				</div>
 			</div>
 
-			{/* Filters */}
-			<div className="bg-white rounded-lg border p-4">
-				<div className="flex items-center gap-4 flex-wrap">
-					<div className="flex items-center gap-2">
-						<Filter className="w-4 h-4 text-gray-500" />
-						<span className="text-sm font-medium text-gray-700">
-							Filters:
-						</span>
-					</div>
+			{/* Metrics Cards */}
+			{loading && <FinancialMetricCardSkeletons hideInfo count={4} />}
 
-					{/* Status Filter */}
-					<select
-						value={filters.status}
-						onChange={e => updateFilter('status', e.target.value)}
-						className="border border-gray-300 rounded-md px-3 py-1 text-sm"
-					>
-						<option value="">All Status</option>
-						<option value="APPROVED">Approved</option>
-						<option value="PENDING">Pending</option>
-						<option value="REJECTED">Rejected</option>
-					</select>
-
-					{/* Condition Filter */}
-					<select
-						value={filters.condition}
-						onChange={e => updateFilter('condition', e.target.value)}
-						className="border border-gray-300 rounded-md px-3 py-1 text-sm"
-					>
-						<option value="">All Conditions</option>
-						<option value="EXCELLENT">Excellent</option>
-						<option value="GOOD">Good</option>
-						<option value="FAIR">Fair</option>
-						<option value="POOR">Poor</option>
-						<option value="VERY_POOR">Very Poor</option>
-					</select>
-
-					{/* Facility Type Filter */}
-					<select
-						value={filters.facilityType}
-						onChange={e => updateFilter('facilityType', e.target.value)}
-						className="border border-gray-300 rounded-md px-3 py-1 text-sm"
-					>
-						<option value="">All Facilities</option>
-						<option value="PUBLIC">Public</option>
-						<option value="PRIVATE">Private</option>
-						<option value="SCHOOL">School</option>
-						<option value="HOSPITAL">Hospital</option>
-						<option value="MARKET">Market</option>
-						<option value="OFFICE">Office</option>
-						<option value="RESIDENTIAL">Residential</option>
-						<option value="OTHER">Other</option>
-					</select>
-
-					{/* Date Range */}
-					{/* <div className="flex items-center gap-2">
-						<Calendar className="w-4 h-4 text-gray-500" />
-						<input
-							type="date"
-							value={filters.dateRange.start}
-							onChange={e =>
-								updateFilter('dateRange', {
-									...filters.dateRange,
-									start: e.target.value,
-								})
-							}
-							className="border border-gray-300 rounded-md px-3 py-1 text-sm"
-						/>
-						<span className="text-gray-500">to</span>
-						<input
-							type="date"
-							value={filters.dateRange.end}
-							onChange={e =>
-								updateFilter('dateRange', {
-									...filters.dateRange,
-									end: e.target.value,
-								})
-							}
-							className="border border-gray-300 rounded-md px-3 py-1 text-sm"
-						/>
-					</div> */}
-
-					{/* Clear Filters */}
-					<button
-						onClick={clearFilters}
-						className="text-sm text-blue-600 hover:text-blue-800"
-					>
-						Clear All
-					</button>
+			{!loading && (
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+					<FinancialMetricCard
+						value={numberWithCommas(totalReports)}
+						title="Total Reports"
+						status="verified"
+						iconColor="bg-blue-100 border border-blue-400"
+						hideInfo
+						className="rounded-md "
+						icon={<MapIcon className="size-5 text-blue-400" />}
+					/>
+					<FinancialMetricCard
+						value={numberWithCommas(pendingReports)}
+						title="Pending Review"
+						status="verified"
+						iconColor="bg-orange-100 border border-orange-400"
+						hideInfo
+						className="rounded-md"
+						icon={<BarChart3 className="size-5 text-orange-400" />}
+					/>
+					<FinancialMetricCard
+						value={numberWithCommas(approvedReports)}
+						title="Approved Reports"
+						status="verified"
+						iconColor="bg-green-100 border border-green-400"
+						hideInfo
+						className="rounded-md"
+						icon={<BarChart3 className="size-5 text-green-400" />}
+					/>
+					<FinancialMetricCard
+						value={numberWithCommas(rejectedReports)}
+						title="Rejected Reports"
+						status="verified"
+						iconColor="bg-red-100 border border-red-400"
+						hideInfo
+						className="rounded-md"
+						icon={<BarChart3 className="size-5 text-red-400" />}
+					/>
 				</div>
+			)}
 
-				{/* Summary */}
-				<div className="mt-3 pt-3 border-t border-gray-200">
-					<p className="text-sm text-gray-600">
-						Showing{' '}
-						<span className="font-medium">{filteredReports.length}</span>{' '}
-						reports
-						{selectedState && (
-							<span>
-								{' '}
-								in <span className="font-medium">{selectedState}</span>
-							</span>
-						)}
-					</p>
+			{/* Filters */}
+			<div className="bg-white rounded-lg border p-6 hidden">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+					<FormSelector
+						label="Status"
+						value={filters.status}
+						onChange={value => updateFilter('status', value)}
+						options={statusOptions}
+						placeholder="Select status"
+						searchable={false}
+					/>
+
+					<FormSelector
+						label="Condition"
+						value={filters.condition}
+						onChange={value => updateFilter('condition', value)}
+						options={conditionOptions}
+						placeholder="Select condition"
+						searchable={false}
+					/>
+
+					<FormSelector
+						label="Facility Type"
+						value={filters.facilityType}
+						onChange={value => updateFilter('facilityType', value)}
+						options={facilityTypeOptions}
+						placeholder="Select facility"
+						searchable={false}
+					/>
+
+					<FormSelector
+						label="State"
+						value={filters.state}
+						onChange={value => updateFilter('state', value)}
+						options={stateOptions}
+						placeholder="Select state"
+						searchable={true}
+					/>
 				</div>
 			</div>
 
@@ -284,62 +302,28 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 					{/* Map */}
 					<div className="lg:col-span-2">
-						<ToiletReportsMap
-							data={mapData}
-							colorScheme="green"
-							onStateClick={handleStateClick}
-							geoDataUrl="https://mtmd.t3.storage.dev/data/nigeria_state_boundaries.json"
-							className="h-full"
-						/>
+						{loading ? (
+							<div className="flex items-center justify-center h-96 bg-white rounded-lg border">
+								<div className="text-center">
+									<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+									<span className="text-gray-600">
+										Loading map data...
+									</span>
+								</div>
+							</div>
+						) : (
+							<ToiletReportsMap
+								data={mapData}
+								colorScheme="green"
+								onStateClick={handleStateClick}
+								geoDataUrl="https://mtmd.t3.storage.dev/data/nigeria_state_boundaries.json"
+								className="h-full"
+							/>
+						)}
 					</div>
 
 					{/* Summary Stats */}
 					<div className="space-y-6">
-						{/* Quick Stats */}
-						<div className="bg-white rounded-lg border p-4">
-							<h3 className="font-semibold text-gray-900 mb-4">
-								Quick Statistics
-							</h3>
-							<div className="space-y-3">
-								<div className="flex justify-between">
-									<span className="text-gray-600">Total Reports:</span>
-									<span className="font-medium">
-										{filteredReports.length}
-									</span>
-								</div>
-								<div className="flex justify-between">
-									<span className="text-gray-600">Approved:</span>
-									<span className="font-medium text-green-600">
-										{
-											filteredReports.filter(
-												r => r.status === 'APPROVED'
-											).length
-										}
-									</span>
-								</div>
-								<div className="flex justify-between">
-									<span className="text-gray-600">Pending:</span>
-									<span className="font-medium text-yellow-600">
-										{
-											filteredReports.filter(
-												r => r.status === 'PENDING'
-											).length
-										}
-									</span>
-								</div>
-								<div className="flex justify-between">
-									<span className="text-gray-600">Rejected:</span>
-									<span className="font-medium text-red-600">
-										{
-											filteredReports.filter(
-												r => r.status === 'REJECTED'
-											).length
-										}
-									</span>
-								</div>
-							</div>
-						</div>
-
 						{/* Top States */}
 						<div className="bg-white rounded-lg border p-4">
 							<h3 className="font-semibold text-gray-900 mb-4">
@@ -355,9 +339,11 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 											<span className="text-sm text-gray-500">
 												#{index + 1}
 											</span>
-											<span className="text-sm">{state.state}</span>
+											<span className="text-sm font-medium">
+												{state.state}
+											</span>
 										</div>
-										<span className="text-sm font-medium">
+										<span className="text-sm font-bold text-blue-600">
 											{state.count}
 										</span>
 									</div>
@@ -370,7 +356,7 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 							<h3 className="font-semibold text-gray-900 mb-4">
 								Condition Distribution
 							</h3>
-							<div className="space-y-2">
+							<div className="space-y-3">
 								{conditionDistribution.map(item => (
 									<div
 										key={item.condition}
@@ -380,11 +366,11 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 											{item.condition.toLowerCase()}
 										</span>
 										<div className="flex items-center gap-2">
-											<span className="text-sm font-medium">
+											<span className="text-sm font-bold text-gray-900">
 												{item.count}
 											</span>
-											<span className="text-xs text-gray-500">
-												({item.percentage}%)
+											<span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+												{item.percentage}%
 											</span>
 										</div>
 									</div>
@@ -399,120 +385,128 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 					{selectedState && stateStats ? (
 						<>
 							{/* Selected State Details */}
-							<div className="bg-white rounded-lg border p-6">
-								<div className="flex items-center gap-2 mb-4">
+							<div className="bg-white rounded-lg border p-6 h-fit">
+								<div className="flex items-center gap-2 mb-6">
 									<MapPin className="w-5 h-5 text-blue-600" />
 									<h3 className="text-lg font-semibold text-gray-900">
 										{selectedState}
 									</h3>
 								</div>
 
-								<div className="grid grid-cols-2 gap-4">
-									<div className="bg-blue-50 rounded-lg p-3">
-										<div className="text-2xl font-bold text-blue-600">
+								<div className="grid grid-cols-2 gap-4 mb-6">
+									<div className="bg-blue-50 rounded-lg p-4 text-center">
+										<div className="text-3xl font-bold text-blue-600 mb-1">
 											{stateStats.total}
 										</div>
-										<div className="text-sm text-blue-700">
+										<div className="text-sm text-blue-700 font-medium">
 											Total Reports
 										</div>
 									</div>
-									<div className="bg-green-50 rounded-lg p-3">
-										<div className="text-2xl font-bold text-green-600">
+									<div className="bg-green-50 rounded-lg p-4 text-center">
+										<div className="text-3xl font-bold text-green-600 mb-1">
 											{stateStats.approved}
 										</div>
-										<div className="text-sm text-green-700">
+										<div className="text-sm text-green-700 font-medium">
 											Approved
 										</div>
 									</div>
-									<div className="bg-yellow-50 rounded-lg p-3">
-										<div className="text-2xl font-bold text-yellow-600">
+									<div className="bg-yellow-50 rounded-lg p-4 text-center">
+										<div className="text-3xl font-bold text-yellow-600 mb-1">
 											{stateStats.pending}
 										</div>
-										<div className="text-sm text-yellow-700">
+										<div className="text-sm text-yellow-700 font-medium">
 											Pending
 										</div>
 									</div>
-									<div className="bg-red-50 rounded-lg p-3">
-										<div className="text-2xl font-bold text-red-600">
+									<div className="bg-red-50 rounded-lg p-4 text-center">
+										<div className="text-3xl font-bold text-red-600 mb-1">
 											{stateStats.rejected}
 										</div>
-										<div className="text-sm text-red-700">
+										<div className="text-sm text-red-700 font-medium">
 											Rejected
 										</div>
 									</div>
 								</div>
-
-								<div className="mt-6 pt-4 border-t border-gray-200">
-									<h4 className="font-medium text-gray-900 mb-3">
-										Facility Types
-									</h4>
-									<div className="grid grid-cols-2 gap-2 text-sm">
-										<div className="flex justify-between">
-											<span>Public:</span>
-											<span>{stateStats.facilities.public}</span>
-										</div>
-										<div className="flex justify-between">
-											<span>Private:</span>
-											<span>{stateStats.facilities.private}</span>
-										</div>
-										<div className="flex justify-between">
-											<span>Schools:</span>
-											<span>{stateStats.facilities.school}</span>
-										</div>
-										<div className="flex justify-between">
-											<span>Hospitals:</span>
-											<span>{stateStats.facilities.hospital}</span>
-										</div>
-										<div className="flex justify-between">
-											<span>Markets:</span>
-											<span>{stateStats.facilities.market}</span>
-										</div>
-										<div className="flex justify-between">
-											<span>Offices:</span>
-											<span>{stateStats.facilities.office}</span>
-										</div>
-									</div>
-								</div>
+								<StepSummary
+									title="Toilet Conditions Breakdown"
+									data={[
+										{
+											name: 'Excellent Condition',
+											value: `${stateStats.excellent} reports`,
+											type: 'string',
+										},
+										{
+											name: 'Good Condition',
+											value: `${stateStats.good} reports`,
+											type: 'string',
+										},
+										{
+											name: 'Fair Condition',
+											value: `${stateStats.fair} reports`,
+											type: 'string',
+										},
+										{
+											name: 'Poor Condition',
+											value: `${stateStats.poor} reports`,
+											type: 'string',
+										},
+										{
+											name: 'Very Poor Condition',
+											value: `${stateStats.veryPoor} reports`,
+											type: 'string',
+										},
+									]}
+								/>
 							</div>
 
 							{/* Condition Breakdown */}
-							<div className="bg-white rounded-lg border p-6">
-								<h3 className="text-lg font-semibold text-gray-900 mb-4">
-									Toilet Conditions in {selectedState}
-								</h3>
-
-								<div className="space-y-3">
-									<div className="flex justify-between items-center">
-										<span className="text-green-600">Excellent:</span>
-										<span className="font-medium">
-											{stateStats.excellent}
-										</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-blue-600">Good:</span>
-										<span className="font-medium">
-											{stateStats.good}
-										</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-yellow-600">Fair:</span>
-										<span className="font-medium">
-											{stateStats.fair}
-										</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-orange-600">Poor:</span>
-										<span className="font-medium">
-											{stateStats.poor}
-										</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-red-600">Very Poor:</span>
-										<span className="font-medium">
-											{stateStats.veryPoor}
-										</span>
-									</div>
-								</div>
+							<div className="bg-white rounded-lg border p-6 h-fit">
+								{/* Facility Types Summary */}
+								<StepSummary
+									title="Facility Types Breakdown"
+									data={[
+										{
+											name: 'Public Facilities',
+											value: `${stateStats.facilities.public} reports`,
+											type: 'string',
+										},
+										{
+											name: 'Private Facilities',
+											value: `${stateStats.facilities.private} reports`,
+											type: 'string',
+										},
+										{
+											name: 'School Facilities',
+											value: `${stateStats.facilities.school} reports`,
+											type: 'string',
+										},
+										{
+											name: 'Hospital Facilities',
+											value: `${stateStats.facilities.hospital} reports`,
+											type: 'string',
+										},
+										{
+											name: 'Market Facilities',
+											value: `${stateStats.facilities.market} reports`,
+											type: 'string',
+										},
+										{
+											name: 'Office Facilities',
+											value: `${stateStats.facilities.office} reports`,
+											type: 'string',
+										},
+										{
+											name: 'Residential Facilities',
+											value: `${stateStats.facilities.residential} reports`,
+											type: 'string',
+										},
+										{
+											name: 'Other Facilities',
+											value: `${stateStats.facilities.other} reports`,
+											type: 'string',
+										},
+									]}
+								/>
 							</div>
 						</>
 					) : (
@@ -528,7 +522,7 @@ const DashboardMapView: React.FC<DashboardMapViewProps> = ({
 					)}
 				</div>
 			)}
-		</div>
+		</motion.div>
 	);
 };
 
