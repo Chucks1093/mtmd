@@ -33,13 +33,13 @@ const faqData: FAQItem[] = [
 			'100% of donations go directly to sanitation improvements. Your contributions fund toilet facility construction, maintenance of existing facilities, awareness campaigns, and emergency sanitation responses across Nigerian communities.',
 		category: 'donation',
 	},
-	{
-		id: '3',
-		question: 'Is my donation secure?',
-		answer:
-			'Yes, absolutely. All donations are processed securely through Paystack, a trusted payment gateway. We never store your payment information, and all transactions are encrypted and protected.',
-		category: 'donation',
-	},
+	// {
+	// 	id: '3',
+	// 	question: 'Is my donation secure?',
+	// 	answer:
+	// 		'Yes, absolutely. All donations are processed securely through Paystack, a trusted payment gateway. We never store your payment information, and all transactions are encrypted and protected.',
+	// 	category: 'donation',
+	// },
 	{
 		id: '4',
 		question: 'How can I submit a toilet report?',
@@ -47,13 +47,13 @@ const faqData: FAQItem[] = [
 			'Simply use our reporting form on the homepage. Take a photo of the toilet facility, provide the location details (State, LGA, specific address), and submit. Our team reviews all submissions to ensure data quality.',
 		category: 'campaign',
 	},
-	{
-		id: '5',
-		question: 'Can I track the impact of my donation?',
-		answer:
-			'Yes! We provide regular updates on our progress through public reports. You can see how your donations contribute to improved sanitation facilities and view statistics on our interactive map.',
-		category: 'donation',
-	},
+	// {
+	// 	id: '5',
+	// 	question: 'Can I track the impact of my donation?',
+	// 	answer:
+	// 		'Yes! We provide regular updates on our progress through public reports. You can see how your donations contribute to improved sanitation facilities and view statistics on our interactive map.',
+	// 	category: 'donation',
+	// },
 	{
 		id: '6',
 		question: 'What types of toilet facilities can I report?',
@@ -61,13 +61,13 @@ const faqData: FAQItem[] = [
 			'You can report any type of toilet facility including public toilets, school facilities, hospital restrooms, market facilities, office buildings, and residential facilities. We accept reports on all sanitation infrastructure.',
 		category: 'campaign',
 	},
-	{
-		id: '7',
-		question: 'Can I make recurring donations?',
-		answer:
-			'Yes! You can set up monthly or annual recurring donations to provide ongoing support for sanitation improvements. Recurring donors help us plan and implement long-term projects more effectively.',
-		category: 'donation',
-	},
+	// {
+	// 	id: '7',
+	// 	question: 'Can I make recurring donations?',
+	// 	answer:
+	// 		'Yes! You can set up monthly or annual recurring donations to provide ongoing support for sanitation improvements. Recurring donors help us plan and implement long-term projects more effectively.',
+	// 	category: 'donation',
+	// },
 	{
 		id: '8',
 		question: 'What happens to my personal information?',
@@ -75,13 +75,13 @@ const faqData: FAQItem[] = [
 			'We take privacy seriously. Your personal information is used only for donation processing and campaign updates. We never share your data with third parties, and you can opt out of communications at any time.',
 		category: 'technical',
 	},
-	{
-		id: '9',
-		question: 'How do I get updates on the campaign?',
-		answer:
-			'When you donate or submit a report, you can opt-in to receive email updates about campaign progress, impact stories, and new initiatives. You can also follow our progress through the public statistics on our website.',
-		category: 'general',
-	},
+	// {
+	// 	id: '9',
+	// 	question: 'How do I get updates on the campaign?',
+	// 	answer:
+	// 		'When you donate or submit a report, you can opt-in to receive email updates about campaign progress, impact stories, and new initiatives. You can also follow our progress through the public statistics on our website.',
+	// 	category: 'general',
+	// },
 	{
 		id: '10',
 		question: 'Can organizations partner with the campaign?',
