@@ -1,4 +1,5 @@
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Camera, MapPin } from 'lucide-react';
+import FeatureItem from '../common/FeatureItem';
 
 function Hero() {
 	return (
@@ -46,14 +47,31 @@ function Hero() {
 					</div>
 
 					{/* Right Side - Image and Buttons */}
-					<div className="relative md:h-screen h-auto">
+					<div className="relative md:h-screen h-auto ">
+						<FeatureItem
+							icon={MapPin}
+							title="Location Tracking"
+							description="Precise ward mapping"
+							iconColor="text-green-600"
+							iconBgColor="bg-green-50"
+							className="absolute -left-2 top-10  md:top-[20%] h-fit md:-left-[15%] z-10 bg-white shadow-md "
+						/>
+
+						<FeatureItem
+							icon={Camera}
+							title="Photo Reports"
+							description="Document toilet conditions easily"
+							iconColor="text-yellow-600"
+							iconBgColor="bg-yellow-50"
+							className="absolute md:bottom-20 h-fit md:-right-[10%] z-10 bg-white shadow-md  -bottom-[4px]"
+						/>
 						<img
 							className="w-full h-full inset-0  absolute"
 							src="/images/noise.png"
 							alt=""
 						/>
 						<img
-							className="w-full rounded-xl h-[25rem] md:h-full object-cover"
+							className="w-full rounded-xl h-[25rem] md:h-full object-cover  border-4 md:border-8 border-gray-100"
 							src="/images/hero.jpg"
 							alt=""
 						/>
