@@ -318,14 +318,14 @@ const ToiletReportsMap: React.FC<ToiletReportsMapProps> = ({
 				<ComposableMap
 					projection="geoMercator"
 					projectionConfig={{
-						scale: 2800,
+						scale: 4000,
 						center: [8, 9.5], // Centered on Nigeria
 					}}
 					width={800}
 					height={600}
 					style={{ width: '100%', height: 'auto' }}
 				>
-					<ZoomableGroup>
+					<ZoomableGroup minZoom={1} maxZoom={1.5} zoom={1}>
 						<Geographies geography={geoData}>
 							{({ geographies }: { geographies: GeographyFeature[] }) =>
 								geographies.map((geo: GeographyFeature) => {
