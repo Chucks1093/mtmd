@@ -15,15 +15,11 @@ function Header() {
 				<div className="flex items-center justify-between h-20">
 					{/* Logo */}
 					<a href="/" className="flex items-center gap-2">
-						<div className="w-10 h-10 bg-[#7fcd9050] rounded flex items-center justify-center">
-							<img
-								className="w-6 h-6 opacity-90"
-								src="/icons/logo.svg"
-								alt="Logo"
-							/>
+						<div className=" .bg-[#7fcd9050] rounded flex items-center justify-center">
+							<img className="w-24 " src="/icons/logo.jpeg" alt="Logo" />
 						</div>
 						<h1 className="font-bold font-grotesk text-2xl text-zinc-700">
-							MTMD
+							{/* MTMD */}
 						</h1>
 					</a>
 

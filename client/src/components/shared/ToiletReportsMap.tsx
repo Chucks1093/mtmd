@@ -325,7 +325,7 @@ const ToiletReportsMap: React.FC<ToiletReportsMapProps> = ({
 					height={600}
 					style={{ width: '100%', height: 'auto' }}
 				>
-					<ZoomableGroup minZoom={1} maxZoom={1.5} zoom={1}>
+					<ZoomableGroup minZoom={0.7} maxZoom={1.5} zoom={1}>
 						<Geographies geography={geoData}>
 							{({ geographies }: { geographies: GeographyFeature[] }) =>
 								geographies.map((geo: GeographyFeature) => {

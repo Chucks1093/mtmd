@@ -17,7 +17,7 @@ function Hero() {
 						<div className="w-fit flex items-center gap-2  px-4 py-2 bg-gray-50 border border-gray-300 text-gray-600 rounded-full text-xs font-medium md:tracking-wider ">
 							REPORT, TRACK, IMPROVE
 						</div>
-						<h1 className="text-5xl md:text-[3.7rem] tracking-[-.08em] md:tracking-tight font-medium text-gray-700 font-space-grotesk">
+						<h1 className="text-5xl md:text-[3.7rem] tracking-[-.08em] md:tracking-tight font-medium text-gray-700 font-inter">
 							<span className="block">National Tiolet</span>
 							<span className="block">Campaign</span>
 						</h1>
